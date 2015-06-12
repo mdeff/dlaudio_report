@@ -96,7 +96,7 @@
 \hypersetup{pageanchor=true}
 
 \begin{abstract}
-	abstract
+	In this work, we present a technique to learn discriminative audio features for \gls{MIR} in an unsupervised and hierarchical way. We introduce a novel deep architecture composed by (stacks of) structured sparse auto-encoders which leverage on the recent advances of deep learning using efficient auto-encoder strategy that simultaneously learned sparse representation of inputs and dictionary adapted to those inputs. Our main goal is to find a solution to sparse coding that is structured by the proximities of the sparse features encoded by a graph of audio inputs. We borrow ideas from manifold learning to constrain our solution to be smooth on this graph, i.e. to have a small Dirichlet energy, in order to implicitly force feature proximities. Our auto-encoder model is formulated as a non-convex optimization problem, for which a {\color{red}well-posed} iterative scheme is provided. We show that the learned features combined with a simple linear classifier achieve {\color{red}110\%} accuracy in predicting genres on GTZAN.
 \end{abstract}
 
 \renewcommand{\abstractname}{Acknowledgements}
