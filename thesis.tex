@@ -17,6 +17,22 @@
 \lhead{Audio Classification with Structured Deep Learning} \chead{} \rhead{}
 \cfoot{\thepage / \pageref{LastPage}}
 
+\usepackage[acronym]{glossaries} \makeglossaries
+\newacronym{MIR}{MIR}{music information retrieval}
+\newacronym{PSD}{PSD}{Predictive Sparse Decomposition}
+\newacronym{CQT}{CQT}{constant-Q transform}
+\newacronym{LCN}{LCN}{local contrast normalization}
+\newacronym{SVM}{SVM}{support vector machines}
+\newacronym{RIP}{RIP}{Restricted isometry property}
+\newacronym{BP}{BP}{Basis Pursuit}
+\newacronym{FISTA}{FISTA}{fast iterative shrinkage-thresholding algorithm}
+\newacronym{ADMM}{ADMM}{alternating direction method of multipliers}
+\newacronym{PD}{PD}{Primal-Dual}
+\newacronym{SGD}{SGD}{Stochastic gradient descent}
+\newacronym{GPU}{GPU}{Graphical Processing Unit}
+\newacronym{lasso}{lasso}{least absolute shrinkage and selection operator}
+\newacronym{AGC}{AGC}{automatic gain control}
+
 \DeclareMathOperator*{\argmin}{arg\,min}
 \DeclareMathOperator*{\argmax}{arg\,max}
 \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
@@ -97,6 +113,10 @@
 %\clearpage
 %\setcounter{page}{2}
 \tableofcontents
+
+\printglossaries
+\addcontentsline{toc}{chapter}{Glossary}
+\addcontentsline{toc}{chapter}{Acronyms}
 
 \chapter*{Introduction}
 \addcontentsline{toc}{chapter}{Introduction}
