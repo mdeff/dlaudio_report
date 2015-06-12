@@ -37,11 +37,45 @@
 \newacronym{AGC}{AGC}{Automatic Gain Control}
 \newacronym{kNN}{kNN}{k Nearest Neighbors}
 
-\DeclareMathOperator*{\argmin}{arg\,min}
-\DeclareMathOperator*{\argmax}{arg\,max}
+\newcommand{\eqnref}[1]{(\ref{#1})}  % Eqn~(\ref{#1})
+\newcommand{\figref}[1]{Figure~\ref{#1}}
+\newcommand{\tabref}[1]{Table~\ref{#1}}
 \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
-\newcommand{\equ}[1]{Eq.~(\ref{#1})}
-\newcommand{\fig}[1]{Fig.~\ref{#1}}
+
+\newcommand{\R}{\mathbb{R}}
+\DeclareMathOperator*{\argminop}{arg\,min}
+\DeclareMathOperator*{\sgn}{sgn}
+\DeclareMathOperator*{\tr}{tr}
+\newcommand{\argmin}[1]{\argminop\limits_{#1}}
+\newcommand{\minimize}[1]{\min\limits_{#1}}
+\newcommand{\normT}[1]{\| #1 \|_2^2}
+\newcommand{\normO}[1]{\| #1 \|_1}
+\newcommand{\normZ}[1]{\| #1 \|_0}
+\newcommand{\normF}[1]{\| #1 \|_\text{F}^2}
+\newcommand{\inner}[2]{\langle #1 , #2 \rangle}
+\renewcommand{\L}{\mathbf{L}}
+\newcommand{\D}{\mathbf{D}}
+\newcommand{\E}{\mathbf{E}}
+\newcommand{\X}{\mathbf{X}}
+\newcommand{\Z}{\mathbf{Z}}
+\renewcommand{\d}{\mathbf{d}}
+\newcommand{\e}{\mathbf{e}}
+\newcommand{\x}{\mathbf{x}}
+\newcommand{\y}{\mathbf{y}}
+\newcommand{\z}{\mathbf{z}}
+\newcommand{\Eone}{E_1(\Z, \D)}
+\newcommand{\Etwo}{E_2(\Z, \D, \E)}
+\newcommand{\Ethree}{E_3(\Z, \D, \E)}
+\newcommand{\G}{\mathcal{G}}
+\newcommand{\set}[2]{\{#1_i\}_{i=1}^#2}
+\newcommand{\st}{\text{ s.t. }}
+\newcommand{\cst}[2]{\|#1_#2\|_2 \leq 1}
+%\newcommand{\forallx}[2]{\forall #1 \in \{1,\ldots,#2\}}
+\newcommand{\forallx}[2]{#1 = 1, \ldots, #2}
+%\newcommand{\forallx}[2]{\|#1_#2\|_2 \leq 1 \text{ for } #2 = 1,\ldots,#3}
+\newcommand{\cstd}{\cst{\d}{i}, \forallx{i}{m}}
+\newcommand{\cste}{\cst{\e}{k}, \forallx{k}{n}}
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
 
 \begin{document}
 
