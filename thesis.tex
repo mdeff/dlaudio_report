@@ -1,0 +1,403 @@
+\documentclass[a4paper,12pt,twoside]{report}
+
+\usepackage[T1]{fontenc} \usepackage{lmodern} \usepackage[utf8]{inputenc}
+\usepackage[english]{babel} \usepackage{csquotes}
+\usepackage{float} \usepackage{graphicx,subfig}
+\usepackage{amssymb,amsmath} \usepackage{siunitx}
+\usepackage[style=numeric,backend=biber]{biblatex} \bibliography{refs}
+\usepackage[top=4cm,bottom=4cm,left=3cm,right=3cm,headheight=15pt]{geometry}
+\usepackage{fancyhdr} \pagestyle{fancy} \usepackage{lastpage}
+%\usepackage{parskip} \setlength{\parindent}{0em} \setlength{\parskip}{1em}
+\usepackage[colorlinks=true,allcolors=blue]{hyperref} \hypersetup{
+	pdfauthor={Michaël Defferrard},
+	pdftitle={Audio Classification with Structured Deep Learning},
+	pdfsubject={Master project in Information Technologies}
+}
+
+\lhead{Audio Classification with Structured Deep Learning} \chead{} \rhead{}
+\cfoot{\thepage / \pageref{LastPage}}
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+\newcommand{\equ}[1]{Eq.~(\ref{#1})}
+\newcommand{\fig}[1]{Fig.~\ref{#1}}
+
+\begin{document}
+
+\hypersetup{pageanchor=false}
+\begin{titlepage}
+	
+	\includegraphics[height=2.5cm]{img/logo_epfl}
+	\hfill
+	\includegraphics[height=2.5cm]{img/logo_lts2}
+	\vspace{1.5cm}
+	
+	\begin{center}
+		
+		\textsc{\LARGE MASTER THESIS}\\
+		\vspace{0.5cm}
+		\large Electrical and Electronic Section\\
+		\large Major in Information Technologies\\
+		\vspace{1.3cm}
+		
+		\HRule
+		\vspace{1.0cm}
+		\textsc{\Huge Audio Classification with}\\
+		\vspace{0.7cm}
+		\textsc{\Huge Structured Deep Learning}\\
+		\vspace{0.6cm}
+		\HRule
+		\vspace{1.3cm}
+		
+		\begin{minipage}{0.45\textwidth}
+			\begin{flushleft} \large
+				\textbf{Student}\\ \vspace{0.5ex}
+				Michaël \textsc{Defferrard} \\ \vspace{2.5ex}
+				\textbf{Professor} \\ \vspace{0.5ex}
+				Pierre \textsc{Vandergheynst}
+			\end{flushleft}
+		\end{minipage}
+		\begin{minipage}{0.45\textwidth}
+			\begin{flushright} \large
+				\textbf{Supervisors} \\ \vspace{0.5ex}
+				Xavier \textsc{Bresson} \\ \vspace{0.2ex}
+				Johan \textsc{Paratte}
+			\end{flushright}
+		\end{minipage}
+		
+	\end{center}
+	
+	\vspace{1.3cm}
+	{\large Conducted at the EPFL LTS2 laboratory.}
+	\vspace{1.3cm}
+
+	\begin{center}
+		{\large June 19, 2015}
+	\end{center}
+	
+\end{titlepage}
+\hypersetup{pageanchor=true}
+
+\begin{abstract}
+	abstract
+\end{abstract}
+
+\renewcommand{\abstractname}{Acknowledgements}
+\begin{abstract}
+	Xavier for day-to-day supervision. Many inputs and intuitions. Discussion of the results.
+	
+	Johan for intuitions at the start of the project, advices and proof reading of the thesis.
+	
+	Pierre
+	%C’est grâce à vous que je suis satisfait de conclure ce travail éternellement inachevé par cette petite note personnelle dans une langue que je chéris beaucoup.
+	
+\end{abstract}
+
+%\clearpage
+%\setcounter{page}{2}
+\tableofcontents
+
+\chapter*{Introduction}
+\addcontentsline{toc}{chapter}{Introduction}
+
+\section*{Motivation}
+\addcontentsline{toc}{section}{Motivation}
+
+\section*{Background}
+\addcontentsline{toc}{section}{Background}
+\label{background}
+
+\section*{Related work}
+\addcontentsline{toc}{section}{Related work}
+% LeCun's paper
+
+\part{Theoretical foundations}
+% Explain the methods we'll later use.
+
+\chapter{Music theory}
+% Explain how music is constructed.
+
+\section{Notes and frequencies}
+
+\section{Harmonics, chords and harmonies}
+
+\section{Constant-Q transform}
+% Spectrogram with geometrically spaced frequencies.
+
+\section{Genres}
+% How we can qualitatively distinguish genres.
+
+\chapter{Machine learning}
+% What's the purpose of learning.
+% Why learned features instead of hand-crafted features ?
+
+\section{Supervised vs unsupervised}
+% Explain the difference. Why do we want unsupervised ?
+
+\section{Feature / representation learning}
+% NN is well suited for representation learning
+% We want unsupervised feature learning vs supervised vs hand-crafted
+
+\section{Support Vector Machine}
+% Used for classification
+
+\section{Neural networks}
+% Why ? Distributed representation and computation (e.g. training on GPU, clusters) --> much what symbolic AI is not (mainly search algorithms, SAT solvers)
+% Started in the late 1950s with the perceptron.
+
+\subsection{Deep learning}
+% Rebranded as deep learning, achieve now astonishing results in a variety of fields (computer vision, NLP, machine translation, knowledge representation, automatic control)
+% Deep learning: hierarchical feature learning --> we are not really using that (yet)
+% Deep architectures can approximate any function (RNN any program, i.e. Turing complete)
+% First fall of NN (success of kernel methods / SVM) (first AI winter ?) because perceptron was proved to not be sufficient, multi-layer was too hard (computation and training)
+% Computationally expensive to train
+% Needed to invent backpropagation to train multiple layers
+% Hard to train: problem of vanishing gradient
+% Objective function is highly non-convex.
+
+\section{Sparse coding}
+% What it is, why it works, why it's good.
+% Why learning a dictionary.
+% paper who demonstrates that L1 penalty leads to same solution as L0 while being convex, not combinatorial
+
+\subsection{Dictionary learning}
+% under-complete: dimensionality reduction, no solution to x = Dz.
+% over-complete: easier (linear) separability in higher dimensional space (number of dictionary elements is larger than the dimension of the input data). Infinitely many solutions to x = Dz, need prior and optim to find the 'best' (simplest, l1 norm) one.
+% overcompleteness must be evaluated by considering the number of code units and the effective dimensionality of the input as given by PCA
+% the representation is exploiting statistical regularities present in the training set
+
+\subsection{Encoder}
+% Problem: these methods are slow at inferring sparse codes as they need iterations
+% --> train an encoder
+
+\section{Auto-encoders}
+% For unsupervised learning, i.e. feature extraction.
+% Auto-encoders as a manifold learning tool (Bengio review).
+
+\subsection{Sparse auto-encoders}
+
+\subsection{Denoising auto-encoders}
+% Compare with denoising auto-encoders
+
+\chapter{Convex optimization}
+
+\section{Convex problem}
+% What is a convex problem (objective and constraints).
+% Methods to solve: analytically or numerical schemes.
+
+\section{Numerical solvers}
+% Numerical: gradient descent --> slow --> second order methods like Newton
+% Stochastic gradient descent
+
+\section{Proximal splitting methods}
+% But our objective function is not differentiable
+% --> rely on a sub-gradient method, the proximity / proximal operator --> proximal splitting
+
+\subsection{Forward-backward}
+% Different basic methods to solve these problems: forward-backward, douglas-rachford
+% Explain the intuition
+
+\subsection{Douglas-Rachford}
+
+\subsection{FISTA}
+% Advanced (faster) algorithms who exlpoit variable time steps and multiple points: FISTA
+
+\section{Dual problem}
+% Introducing the dual problem (paper playing with duality)
+
+\subsection{Primal-dual}
+
+\chapter{Spectral graph theory}
+% Paper: Pierre's review
+
+\section{Manifold}
+% The graph is a discrete approximation of the unknown manifold. We sample the manifold.
+
+\section{Graph}
+% What is a graph --> discrete approximation of a low-dimensional manifold embedded in a high dimensional space.
+% Type of graph (KNN vs epsilon), kernel (Gaussian, polynomial), distance (Euclidean, cosine)
+
+\subsection{Approximate KNN search}
+% How FLANN works, what are the alternatives.
+% Techniques: KDtree, ball, local hashes (LHS)
+
+\subsection{Distance metric}
+% euclidean (small dim) and cosine (angular, high dim)
+
+\subsection{Kernel}
+% Gaussian or polynomial
+
+\section{Spectrum}
+% What does the spectrum / Fourier transform mean: examples on a 3D point cloud.
+% Faster way to compute FT: Chebyshev approximation (filter bank)
+
+\section{Laplacian}
+% The graph Laplacian is an approximation of the Laplace-Beltrami operator. --> Dirichlet energy
+% normalized vs un-normalized, cite normalized approximates the Laplace-Beltrami operator
+% A way to test if the Laplacian is well constructed is... (see blog)
+
+\part{Contributions}
+\label{contributions}
+% Proposed method / method
+% Based on the introduced methods, explain what we did.
+
+\chapter{Model}
+% Visual diagram
+
+\section{Hypothesis}
+
+% (Known) hypothesis: patches of spectrogram are composed by a linear combination of atoms. These atoms form a dictionary. As we shall see, these atoms represent harmonies, harmonics, drums etc.
+
+% (New) hypothesis: audio spectrograms lie on a low-dimensional manifold embedded in a high dimensional space.
+% Structured: adding similarity information between inputs
+% Manifold: not all possible signals are reasonable / feasible
+
+% Finish with the complete objective function.
+% Why energy function ? Many laws of nature are nothing but optimality conditions, often expressed in terms of a minimum energy principle.
+% Easy to add and remove terms.
+
+\section{Graph construction}
+% Similarity measure
+% KNN graph
+
+\section{Problem formulation}
+% Construction: sparse coding, dictionary learning, encoder learning, manifold learning
+% Non-convex problem composed of convex sub-problems.
+% Derive prox and gradients.
+% Why we can use FISTA an PD ?
+% Derive FISTA and primal-dual formulations.
+
+\section{Training}
+% Batch (FISTA, primal-dual) and online (stochastic gradient descent) training
+% Transductive learning
+
+\section{Feature extraction}
+% Most accurate extraction with original model.
+% Much faster approximations by ignoring some terms of the objective.
+
+\section{Audio pre-processing}
+% Frames, CQT, LCN, feature / sample normalization
+
+\section{Classification}
+% Feature aggregation (feature vectors), linear SVM, majority voting (winner take all)
+% Voting further gives a cheap confidence level about our choice.
+% Multi-class: one-vs-one / one-vs-the-rest
+
+\chapter{Implementation}
+
+\section{Framework}
+% Stack: numpy, scipy, matplotlib, scikit-learn, librosa
+% Tools: IPython notebook, CDK cluster, matplotlib, h5py, librosa
+% Explain why and how data is stored (layout) via HDF5.
+
+\subsection{PyUNLocBoX}
+% PyUNLocBoX: explains how it works
+
+\section{Design}
+
+\section{Performance}
+
+\subsection{Algorithm}
+% FISTA vs PD implementation
+
+\subsection{Optimization for space}
+% Optimization for space: avoid copy, modify in place, float32, store Z as scipy.sparse
+
+\subsection{Optimization for speed}
+% Optimization for speed: ATLAS/OpenBLAS, float32 (memory bandwidth), projection in the ball (not on the sphere)
+% ATLAS mono-threaded (at least on Ubuntu), OpenBLAS multi-threaded.
+% Linear algebra: optimized version of BLAS: ATLAS and OpenBLAS. (LINPACK)
+
+\chapter{Results}
+\label{results}
+% Results and comparisons
+% Include discussion in results ?
+
+\section{Spectrograms}
+% Show example spectrograms of jazz / blues. Show how they are different (music theory) and can such be distinguished.
+
+\section{Learned features}
+% Show some atoms: harmonics, chords, harmonies, drums.
+% Probably not on full CQT, should be on octaves.
+
+\section{Descriptive feature vectors}
+% Show aggregated feature vectors for some genres.
+% How is it qualitatively more discriminative than the spectrogram ?
+
+\section{Hyper-parameters tuning}
+% Test matrix for hyper-parameters on smaller problem (i.e. less frames).
+% For ld, le, lg, m
+% Numerical parameters: Nouter (enough when no more inner), rtol
+% Graph parameters: K, Csigma, kernel?, metric
+% Classification: C, Nvectors
+% Pre-processing: na=1024, ns=96
+
+\section{Classification accuracy}
+% Measured via 10-fold cross-validation
+% How classification is improved by feature learning, introducing the encoder / graph.
+% Comparison with other techniques.
+
+\chapter{Discussion}
+\label{discussion}
+% Discussion of our results. Strengths and weaknesses of our method.
+
+\chapter*{Conclusion}
+\addcontentsline{toc}{chapter}{Conclusion}
+\label{conclusion}
+
+\section*{Future work}
+\addcontentsline{toc}{section}{Future work}
+
+\subsection*{Encoder}
+\addcontentsline{toc}{subsection}{Encoder}
+
+\subsection*{LCN}
+\addcontentsline{toc}{subsection}{LCN}
+% Not if we cannot justify.
+
+\subsection*{Individual octaves}
+\addcontentsline{toc}{subsection}{Individual octaves}
+
+\subsection*{TV norm}
+\addcontentsline{toc}{subsection}{TV norm}
+% TV norm on the graph instead of Dirichlet energy
+
+\subsection*{Distributed implementation}
+\addcontentsline{toc}{subsection}{Distributed implementation}
+% Train chunks of D / Z via independant threads.
+% Directly in the PyUNLocBoX ?
+% Usefull only if we are not memory bandwidth limited.
+% Why ATLAS does not do it by default ? OpenBLAS does it.
+% Move to GPU.
+
+\subsection*{Multiple layers}
+\addcontentsline{toc}{subsection}{Multi-layers}
+% Multiple layers of auto-encoders
+
+\subsection*{End-to-end learning}
+\addcontentsline{toc}{subsection}{End-to-end learning}
+% Learn features right from raw audio. If spectrograms are good features, we should retrieve them.
+
+\subsection*{Domain knowledge}
+\addcontentsline{toc}{subsection}{Domain knowledge}
+% Incorporate some domain knowledge about the dictionary via priors. Then it's not supervised anymore.
+% Priors on the dictionary who are not necessarily domain specific, i.e. are general enough to apply to other kind of data.
+
+\printbibliography
+\addcontentsline{toc}{chapter}{References}
+
+\chapter*{Annexes}
+\addcontentsline{toc}{chapter}{Annexes}
+\label{annexes}
+
+\section*{Conference paper}
+\addcontentsline{toc}{section}{Conference paper}
+% Draft of ISMIR / ICASSP paper
+
+\section*{Code}
+\addcontentsline{toc}{section}{Code}
+% IPython notebooks exported as LaTex.
+% Available on GitHub.
+
+\end{document}
