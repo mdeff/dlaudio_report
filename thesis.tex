@@ -21,6 +21,11 @@
 \newacronym{EPFL}{EPFL}{École Polytechnique Fédérale de Lausanne}
 \newacronym{ICASSP}{ICASSP}{International Conference on Acoustics, Speech and Signal Processing}
 \newacronym{CS}{CS}{Compressed Sensing}
+\newacronym{ANNs}{ANNs}{Artificial Neural Networks}
+\newacronym{CNN}{CNN}{Convolutional Neural Network}
+\newacronym{RNN}{RNN}{Recursive Neural Network}
+\newacronym{LTSM}{LTSM}{Long Short Term Memory}
+\newacronym{MLP}{MLP}{Multi-Layer Perceptron}
 \newacronym{RBM}{RBM}{Restricted Boltzmann Machine}
 \newacronym{DBN}{DBN}{Deep Belief Network}
 \newacronym{MIR}{MIR}{Music Information Retrieval}
@@ -269,6 +274,7 @@ An extension of this approach is the elastic net regularization which linearly c
 \subsection{Encoder} \label{sec:encoder}
 % Problem: these methods are slow at inferring sparse codes as they need iterations
 % --> train an encoder
+{\color{red} Put after sparse auto-encoders ? Because it is our definition of a sparse auto-encoder.}
 
 % Why ?
 In order to avoid the iterative procedure typically required to infer the sparse code, we aim at an encoder which can quickly map inputs to approximations of their sparse code. Several works \cite{lecun2010PSD, lecun2010LISTA, lecun2013DrSAE} {\color{red} [others not from LeCun]} has been done in this direction. The addition of an encoder to the sparse coding scheme leads to a variant of auto-encoders called sparse auto-encoders which we will introduce in \ref{sec:auto_encoders}.
@@ -294,15 +300,23 @@ While it is often a good idea to control the energy, the constraint on the colum
 % Why ? Distributed representation and computation (e.g. training on GPU, clusters) --> much what symbolic AI is not (mainly search algorithms, SAT solvers)
 % Started in the late 1950s with the perceptron.
 
-\subsection{Deep learning}
-% Rebranded as deep learning, achieve now astonishing results in a variety of fields (computer vision, NLP, machine translation, knowledge representation, automatic control)
-% Deep learning: hierarchical feature learning --> we are not really using that (yet)
-% Deep architectures can approximate any function (RNN any program, i.e. Turing complete)
-% First fall of NN (success of kernel methods / SVM) (first AI winter ?) because perceptron was proved to not be sufficient, multi-layer was too hard (computation and training)
-% Computationally expensive to train
-% Needed to invent backpropagation to train multiple layers
-% Hard to train: problem of vanishing gradient
-% Objective function is highly non-convex.
+\gls{ANNs} are a family of statistical learning models inspired by biological neural networks and are used to estimate or approximate functions that can depend on a large number of inputs and are generally unknown. It is presented as a network of interconnected neurons whose connections have numeric weights that can be tuned based on experience. It makes the neural nets adaptive to inputs and capable of learning.
+
+% What is it ? In general.
+Such a network is composed by an input layer, a number of hidden layers and an output layer. The activation of the neurons in the input layer corresponds to the input vector, e.g. an image for computer vision, a song for \gls{MIR}, a word vector for machine translation and sentiment analysis. A weight matrix, followed by a non-linear activation function, then transforms the vector in another representation. The output vector of the first layer is the input vector of the second, and so on until the output layer is reached. The activation of the neurons in the output layer may represent classes, probability distributions, or the estimated value of an unknown function to be learned.
+
+{\color{red} Picture ?}
+
+% Types: feed-forward or recurrent
+In a feed-forward network, the connections go from one layer to the next, i.e. information only goes in one direction, forward, from the input nodes, through the hidden nodes (if any) and to the output nodes. Such networks are known to be able to approximate any function. The perceptron, the \gls{MLP} and the \gls{CNN} are examples of this class of networks.
+By introducing backward connections, i.e. the connections between units form a directed cycle, we obtain a so called \gls{RNN}. This creates an internal state of the network which allows it to exhibit dynamic temporal behavior. Unlike feed-forward neural networks, an \gls{RNN} can use its internal memory to process arbitrary sequences of inputs. It is known to be able to approximate any program. Such networks have proven very successful for machine translation.
+
+% How to train, supervised.
+In a supervised learning setting, the network is trained by back-propagating the error, gradient based learning method, from the output layer to the input through all the hidden layers.
+The vanishing gradient problem, where errors shrink exponentially with the number of layers as they propagate from layer to layer, is a major issue of the algorithm \cite{hochreiter2001vanishingGradient}. Various methods, like unsupervised pre-training or \gls{LSTM} \cite{hochreiter1997LSTM}, were developed to work around this problem.
+
+% How to train, unsupervised.
+However, in an unsupervised learning setting, there is no desired output, which implies that there is no error to back-propagate. The training algorithm should thus optimize for another objective, which represent desired properties about the output. We will introduce next such an algorithm, called an auto-encoder.
 
 \subsection{Auto-encoders} \label{sec:auto_encoders}
 % For unsupervised learning, i.e. feature extraction.
@@ -310,6 +324,8 @@ While it is often a good idea to control the energy, the constraint on the colum
 
 An auto-encoder, auto-associator or Diabolo network is an artificial neural network composed of $n$ input and output units and $m$ hidden units. It is used for learning efficient codings \cite{bourlard1988autoencoder, hinton1994autoencoder}. The aim of an auto-encoder is to learn a distributed representation (encoding) for a set of data. An auto-encoder is trained to encode the input $\x \in \R^n$ into some representation $\z \in \R^m$ so that the input can be reconstructed from that representation. It is thus a generative model. Hence the target output of the auto-encoder is the auto-encoder input itself. Auto-encoders may further be stacked to form a \gls{DBN}, while each layer can be trained separately \cite{bengio2007DBN, lecun2006stackedSparseAutoencoders}.
 % Stacked Auto-Encoders, not DBN
+
+{\color{red} Picture ?}
 
 % if linear activations are used, or only a single sigmoid hidden layer, then the optimal solution to an auto-encoder is strongly related to principal component analysis (PCA).[5]
 If there is one linear hidden layer and the mean squared error criterion is used to train the network, then the $k$ hidden units learn to project the input in the span of the first $k$ principal components of the data \cite{bourlard1988autoencoder}. If the hidden layer is non-linear, the auto-encoder behaves differently from PCA, with the ability to capture multi-modal aspects of the input distribution \cite{japkowicz2000autoencoderPCA}.
@@ -323,6 +339,20 @@ One strategy is to add noise in the encoding. The denoising auto-encoder thus mi
 
 \paragraph{Sparse auto-encoders}
 Another strategy, based on the concept of sparse coding, is to add a sparsity constraint on the code. While an ordinary auto-encoder or an \gls{RBM} has an encoder part which computes $P(\z|\x)$ and a decoder part which computes $P(\x|\z)$, sparse coding systems only parametrize the decoder: the encoder is defined implicitly as the solution of an optimization. A middle ground between ordinary auto-encoders and sparse coding was proposed in \cite{lecun2006stackedSparseAutoencoders, ranzato2007stackedSparseAutoencoders} and applied to pattern recognition and machine vision tasks. They propose to let the codes $\z$ be free (as in sparse coding algorithms), but include a parametric encoder (as in an ordinary auto-encoder or \gls{RBM}) and a penalty for the difference between the free non-parametric codes $\z$ and the outputs of the parametric encoder. In this way, the optimized codes $\z$ try to satisfy two objectives: reconstruct well the input (like in sparse coding), while not being too far from the output of the encoder (which is stable by construction, because of the simple parametrization of the encoder). See \secref{sec:encoder} for the definition of our encoder.
+
+\subsection{Deep learning}
+% Rebranded as deep learning, achieve now astonishing results in a variety of fields (computer vision, NLP, machine translation, knowledge representation, automatic control)
+% Deep learning: hierarchical feature learning --> we are not really using that (yet)
+% Deep architectures can approximate any function (RNN any program, i.e. Turing complete)
+% First fall of NN (success of kernel methods / SVM) (first AI winter ?) because perceptron was proved to not be sufficient, multi-layer was too hard (computation and training)
+% Computationally expensive to train
+% Needed to invent backpropagation to train multiple layers
+% Hard to train: problem of vanishing gradient
+% Objective function is highly non-convex.
+% popularized by CNN.
+
+% DBN: stacks of RBM
+% Stacked auto-encoders
 
 \chapter{Convex optimization}
 
@@ -389,11 +419,6 @@ Another strategy, based on the concept of sparse coding, is to add a sparsity co
 % Proposed method / method
 % Based on the introduced methods, explain what we did.
 
-\chapter{Model}
-% Visual diagram
-% energy-based model
-% the sparsity constraint prevents the auto-encoder to learn the identity
-
 \section{Hypothesis}
 
 % (Known) hypothesis: patches of spectrogram are composed by a linear combination of atoms. These atoms form a dictionary. As we shall see, these atoms represent harmonies, harmonics, drums etc.
@@ -405,6 +430,18 @@ Another strategy, based on the concept of sparse coding, is to add a sparsity co
 % Finish with the complete objective function.
 % Why energy function ? Many laws of nature are nothing but optimality conditions, often expressed in terms of a minimum energy principle.
 % Easy to add and remove terms.
+
+\chapter{Model}
+% Visual diagram
+% energy-based model
+% the sparsity constraint prevents the auto-encoder to learn the identity
+
+{\color{red} Image with input x and hidden z. Output is y=sh(Ex). Weight matrices are D and E with sh() activation function. Approximately.}
+
+% Sparse coding: terms ..
+% Auto-encoders: terms ..
+% Manifold learning: terms ..
+% Regularized least square (elastic net): terms ..
 
 \section{Graph construction}
 % Similarity measure
