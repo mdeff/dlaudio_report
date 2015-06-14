@@ -14,12 +14,13 @@
 	pdfsubject={Master project in Information Technologies}
 }
 
-\lhead{Audio Classification with Structured Deep Learning} \chead{} \rhead{}
-\cfoot{\thepage / \pageref{LastPage}}
+%\lhead{Audio Classification with Structured Deep Learning} \chead{} \rhead{}
+%\cfoot{\thepage / \pageref{LastPage}}
 
 \usepackage[acronym]{glossaries} \makeglossaries
 \newacronym{EPFL}{EPFL}{École Polytechnique Fédérale de Lausanne}
 \newacronym{ICASSP}{ICASSP}{International Conference on Acoustics, Speech and Signal Processing}
+\newacronym{CS}{CS}{Compressed Sensing}
 \newacronym{MIR}{MIR}{Music Information Retrieval}
 \newacronym{MGR}{MGR}{Music Genre Recognition}
 \newacronym{PSD}{PSD}{Predictive Sparse Decomposition}
@@ -44,10 +45,11 @@
 
 \newcommand{\R}{\mathbb{R}}
 \DeclareMathOperator*{\argminop}{arg\,min}
+\DeclareMathOperator*{\minimizeop}{minimize}
 \DeclareMathOperator*{\sgn}{sgn}
 \DeclareMathOperator*{\tr}{tr}
 \newcommand{\argmin}[1]{\argminop\limits_{#1}}
-\newcommand{\minimize}[1]{\min\limits_{#1}}
+\newcommand{\minimize}[1]{\minimizeop\limits_{#1}}  % or \min
 \newcommand{\normT}[1]{\| #1 \|_2^2}
 \newcommand{\normO}[1]{\| #1 \|_1}
 \newcommand{\normZ}[1]{\| #1 \|_0}
@@ -159,6 +161,8 @@
 \chapter*{Introduction}
 \addcontentsline{toc}{chapter}{Introduction}
 
+{\color{red} Introduction to introduction to subject.}
+
 This work was accomplished as a Master thesis, which is an integral part of the major in Information Technologies curriculum from the Electrical and Electronic Section of the \gls{EPFL}. It was conducted at the LTS2 laboratory\footnote{The laboratory homepage is accessible at \url{http://lts2www.epfl.ch/}.}.
 
 While the project was ongoing, I continuously published my thoughts, observations, findings, experiments, results and plans as well as a summary of the weekly meetings with my supervisors on an online blog\footnote{My research blog is available at \url{https://lts2research.epfl.ch/blog/mdeff/}.} in the format of an open laboratory notebook\footnote{\url{http://en.wikipedia.org/wiki/Open_notebook_science}}. The code, as well as the results, this report and the ongoing paper is versioned with git and available online through GitHub\footnote{My GitHub account can be found at \url{https://github.com/mdeff}.}. A continuation of this work shall be submitted to the 41st IEEE \gls{ICASSP}.
@@ -173,6 +177,10 @@ While the project was ongoing, I continuously published my thoughts, observation
 \section*{Related work}
 \addcontentsline{toc}{section}{Related work}
 % LeCun's paper
+
+Similarly to us, the authors of \cite{lecun2011PSDaudio} used a layer of sparse auto-encoder to learn sparse representations of audio spectrograms. They introduced a technique called \gls{PSD} to quickly infer an approximation of the sparse codes \cite{lecun2010PSD}.
+
+In this work, we generalize their loss function as an energy function and introduce a structuring term. We also introduce a well-posed iterative scheme to solve the resulting non-convex optimization problem.
 
 \part{Theoretical foundations}
 % Explain the methods we'll later use.
@@ -218,20 +226,79 @@ While the project was ongoing, I continuously published my thoughts, observation
 % Hard to train: problem of vanishing gradient
 % Objective function is highly non-convex.
 
-\section{Sparse coding}
+\section{Sparse coding} \label{sparse_coding}
 % What it is, why it works, why it's good.
-% Why learning a dictionary.
 % paper who demonstrates that L1 penalty leads to same solution as L0 while being convex, not combinatorial
 
+% Sparse coding.
+The main idea behind sparse coding {\color{red} [ref]} is to express a signal $\x \in \R^n$ as a sparse linear combination of basis functions $\set{\d}{m}$, or atoms, from an overcomplete ($m>n$) dictionary $\D \in \R^{n \times m}$. The sparse code $\z^* \in \R^m$ is given by
+\begin{equation}\label{eqn:sparsecoding}
+	\z^* = \argmin{\z} \frac{\lambda_d}{2} \normT{\x - \D \z} + \lambda_z \normZ{\z}
+\end{equation}
+where $\normZ{\z}$ denotes the number of non-zero elements in $\z$ and $\normT{\cdot}$ the squared $\ell_2$, or Euclidean, norm. $\lambda_d$ and $\lambda_z$ are the (redundant) hyper-parameters setting the trade-off between the data term (an accurate reconstruction) and the prior (a sparse solution). Overcomplete sparse representations tend to be good features for classification systems as they provide a succinct representation of the signal, are robust to noise and are more likely to be linearly separable due to their high dimensionality.
+
+% Faster sparse coding approximations.
+Finding the sparse code $\z^*$ however requires a combinatorial search which is an NP-hard problem, intractable in high dimensional spaces. Various approximations have thus been proposed. Matching Pursuit \cite{mallat1993MatchingPursuit} offers a greedy approximation to the solution while \gls{BP} \cite{chen1998BasisPursuit} is the popular convex approximation
+\begin{equation}\label{eqn:basispursuit}
+	\z^* = \argmin{\z} \frac{\lambda_d}{2} \normT{\x - \D \z} + \lambda_z \normO{\z}
+\end{equation}
+where $\normO{\z} = \sum_{i=1}^{m} |z_i|$ is the $\ell_1$ norm of $\z$ (also called the Taxicab or Manhattan norm). It has been shown that its solution is optimal, i.e. a solution of \eqnref{eqn:sparsecoding}, provided it is sparse enough \cite{donoho2003OptSparse}. {\color{red}link with \gls{RIP}}. A number of algorithms have been proposed to efficiently solve this problem \cite{chen1998BasisPursuit, beck2009FISTA, ng2006EfficientSparse, li2009Coordinate} {\color{red} [others]}. They however still rely on computationally expensive iterative procedures which limit the system's scalability and real-time applications. While a direct method will always be preferred for feature extraction, iterative methods will still be necessary during training. Distributed computing with \gls{GPU} or via cloud computing will hopefully accelerate the process.
+
 \subsection{Dictionary learning}
-% under-complete: dimensionality reduction, no solution to x = Dz.
-% over-complete: easier (linear) separability in higher dimensional space (number of dictionary elements is larger than the dimension of the input data). Infinitely many solutions to x = Dz, need prior and optim to find the 'best' (simplest, l1 norm) one.
+
+% Why ?
+In classical sparse coding, the dictionary is composed of known functions such as sinusoids, gammatones, wavelets or Gabors; i.e. hand-crafted features. One may also want to learn a dictionary that is adaptive to the type of data at hand. This approach allows an even more compact representation and may lead to the discovery of previously unknown discriminative features.
+
+% How ?
+To use the dictionary $\D$ as an unknown variable, we shall integrate all the training data into the objective function as the dictionary depends on all of them. The energy function, composed by an $\ell_2$ fidelity term and an $\ell_1$ penalty, becomes
+\begin{equation}\label{eqn:en_dict}
+	\Eone = \frac{\lambda_d}{2} \normF{\X - \D \Z} + \lambda_z \normO{\Z}
+\end{equation}
+where $\normF{\cdot}$ denotes the squared Frobenius norm, $\X = \set{\x}{N} \in \R^{n \times N}$ is the set of training vectors and $\Z = \set{\z}{N} \in \R^{m \times N}$ their associated sparse codes. $N$ is naturally the number of training vectors, which should be much greater than the size $m$ of the dictionary to avoid the trivial solution where examples are copied in the dictionary. The problem to solve is then
+\begin{equation}\label{eqn:pr_dict}
+	\minimize{\Z,\D} \Eone \st \cstd
+\end{equation}
+where the constraint (usually implemented by rescaling the columns $\d_i$ of $\D$ at each iteration) prevents the trivial solution where the code coefficients go to zero while the bases are scaled up. While this problem is not convex, an approximate solution can be found by iteratively minimizing for $\Z$ and $\D$ \cite{olshausen1996SparseV1}.
+% Simple gradient descent or more sophisticated methods \cite{chen1998BasisPursuit, beck2009FISTA, li2009Coordinate} for $\z$, stochastic gradient descent for $\D$.
+
+% Motivation: learned dictionaries resemble brain processing stages.
+There is evidence that sparse coding may be a strategy employed by the brain in the early stages of visual and auditory processing \cite{olshausen1996SparseV1, olshausen1997SparseV1, smith2006SparseAudio}. Basis functions learned on natural images have been shown to resemble the receptive fields of neurons in the visual cortex \cite{olshausen1996SparseV1, olshausen1997SparseV1}. Basis functions learned on natural sounds were found to be highly similar to gammatone functions \cite{smith2006SparseAudio} which have been used to model the action of the basilar membrane in the inner ear. Moreover, learning on natural time-varying stimuli such as speech or video has been shown to produce localized bases \cite{lewicki2000SparseSpeech, olshausen2000SparseVideo}.
+
+\paragraph{Completeness}
+Note that a dictionary can be either complete ($m=n$), undercomplete ($m<n$) or overcomplete ($m>n$).
+Examples of complete dictionaries are bases, like the Fourier transform, which allow lossless transformations.
+Undercomplete dictionaries are good for dimensionality reductions as they exploit the statistical regularities present in the training set. As there is then no solution to $\x = \D\z$, an error measure like $\normT{\x - \D\z}$ should instead be minimized.
+Overcomplete dictionaries are good for classification as they allow for an easier (linear) separability enabled by the higher dimensional space. As there is then an infinite number of solutions to $\x = \D\z$, we shall introduce a regularization over $\z$. Optimization techniques are then used to find the optimal solution which minimizes the sum of the error measure and the regularization term, controlled by an hyper-parameter.
 % overcompleteness must be evaluated by considering the number of code units and the effective dimensionality of the input as given by PCA
-% the representation is exploiting statistical regularities present in the training set
+
+\paragraph{Regularization}
+The Tikhonov regularization, or ridge regression, is a commonly used prior of the form $\lambda \normT{\mathbf{\Gamma} \z}$ where $\mathbf{\Gamma}$ is the Tikhonov matrix. This matrix is often chosen to be a multiple of the identity matrix, i.e. $\mathbf{\Gamma} = \alpha \mathbf{I}$, giving preference to solutions with smaller norms. In a Bayesian context, this is equivalent to placing a zero-mean normally distributed prior on $\z$. In other cases, lowpass operators (e.g., a difference operator or a weighted Fourier operator) may be used to enforce smoothness if the underlying vector is believed to be mostly continuous. We will introduce a regularization of this kind to our model in section \ref{graph_regularization}.
+Another commonly used regularization is the \gls{LASSO}, which adds the term $\lambda \normO{\z}$ to the minimization problem \cite{tibshirani1996Lasso}. In a Bayesian context, this is equivalent to placing a zero-mean Laplace prior distribution on $\z$ \cite{park2008BayesianLasso}. As we have seen in section \ref{sparse_coding}, we use this prior in our model to enforce sparsity. The advantage of the \gls{LASSO} is that it promotes the simplest solutions, i.e. the solutions with many zeros. Driving parameters to zero effectively deselects the features from the regression. \gls{LASSO} thus automatically selects the most relevant features, whereas ridge regression never fully discards any. For this reason, the \gls{LASSO} and its variants are fundamental to the field of \gls{CS}.
+An extension of this approach is the elastic net regularization which linearly combines the $\ell_1$ and $\ell_2$ penalties of the \gls{LASSO} and ridge methods. This regularization overcomes some limitations of the $\ell_1$ penalty, e.g. the saturation which happens for high-dimensional data with few examples, or the fact that the \gls{LASSO} tends to select only one variable and ignore the others if there is a group of highly correlated variables \cite{zou2005ElasticNet}.
 
 \subsection{Encoder}
 % Problem: these methods are slow at inferring sparse codes as they need iterations
 % --> train an encoder
+
+% Why ?
+In order to avoid the iterative procedure typically required to infer the sparse code, we aim at an encoder which can quickly map inputs to approximations of their sparse code. Several works \cite{lecun2010PSD, lecun2010LISTA, lecun2013DrSAE} {\color{red} [others not from LeCun]} has been done in this direction.
+
+% 2nd motivation.
+Moreover, adding structure to the problem should enhance the behavior of the loss function and help sparse recovery \cite{kowalski2009sparse, baraniuk2010modelCS, huang2011LearningStructuredSparsity, jenatton2011structured} {\color{red}Then \cite{donoho2003OptSparse} should not be strong enough.}
+
+% How ?
+Introducing a trainable encoder $\E \in \R^{m \times n}$ into our model gives the energy function
+\begin{equation}\label{eqn:en_encoder}
+	\Etwo = \Eone + \frac{\lambda_e}{2} \normF{\Z - \E \X} {\color{red} + \lambda_s \normO{\E \X}}
+\end{equation}
+where $\lambda_e$ and $\lambda_s$ are two additional hyper-parameters which control the sparsity versus fidelity tradeoff. The problem is then defined by
+\begin{equation}\label{eqn:pr_encoder}
+	\minimize{\Z,\D,\E} \Etwo \st \cst{\d}{i} , \cst{\e}{k} ,
+	\forallx{i}{m} , \forallx{k}{n}
+\end{equation}
+where $\e_k$ are the columns of $\E$. Again, the $\ell_1$ penalty $\normO{\E \X}$ regularizes the least square problem, i.e. the \gls{LASSO} method.
+
+While it is often a good idea to control the energy, the constraint on the columns of $\E$ is not needed in practice. While the columns of $\D$ are constrained to a norm smaller than one, they are in practice normalized because of the $\normO{\Z}$ objective. The energy of a vector transformed by $\D$ does thus not change, which means that the inferred sparse code $\z_i$ as the same energy as its corresponding vector $\x_i$. The encoder does then not need to add energy and will have a column norm smaller than one, even without the constraint. It has been verified in practice, see {\color{red} Fig}.
 
 \section{Auto-encoders}
 % For unsupervised learning, i.e. feature extraction.
@@ -254,6 +321,7 @@ While the project was ongoing, I continuously published my thoughts, observation
 
 \section{Proximal splitting methods}
 % But our objective function is not differentiable
+% Ridge regression is, but not the LASSO regularization.
 % --> rely on a sub-gradient method, the proximity / proximal operator --> proximal splitting
 
 \subsection{Forward-backward}
@@ -298,9 +366,11 @@ While the project was ongoing, I continuously published my thoughts, observation
 % The graph Laplacian is an approximation of the Laplace-Beltrami operator. --> Dirichlet energy
 % normalized vs un-normalized, cite normalized approximates the Laplace-Beltrami operator
 % A way to test if the Laplacian is well constructed is... (see blog)
+% Another regularization on Z. Like Thikonov with the graph Laplacian as the Tikhonov matrix (difference operator). It enforces smoothness on the graph / manifold.
 
-\part{Contributions}
-\label{contributions}
+\section{Regularization} \label{graph_regularization}
+
+\part{Contributions} \label{contributions}
 % Proposed method / method
 % Based on the introduced methods, explain what we did.
 
