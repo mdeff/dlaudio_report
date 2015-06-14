@@ -21,6 +21,8 @@
 \newacronym{EPFL}{EPFL}{École Polytechnique Fédérale de Lausanne}
 \newacronym{ICASSP}{ICASSP}{International Conference on Acoustics, Speech and Signal Processing}
 \newacronym{CS}{CS}{Compressed Sensing}
+\newacronym{RBM}{RBM}{Restricted Boltzmann Machine}
+\newacronym{DBN}{DBN}{Deep Belief Network}
 \newacronym{MIR}{MIR}{Music Information Retrieval}
 \newacronym{MGR}{MGR}{Music Genre Recognition}
 \newacronym{PSD}{PSD}{Predictive Sparse Decomposition}
@@ -41,6 +43,7 @@
 \newcommand{\eqnref}[1]{(\ref{#1})}  % Eqn~(\ref{#1})
 \newcommand{\figref}[1]{Figure~\ref{#1}}
 \newcommand{\tabref}[1]{Table~\ref{#1}}
+\newcommand{\secref}[1]{Section~\ref{#1}}
 \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
 
 \newcommand{\R}{\mathbb{R}}
@@ -212,26 +215,13 @@ In this work, we generalize their loss function as an energy function and introd
 \section{Support Vector Machine}
 % Used for classification
 
-\section{Neural networks}
-% Why ? Distributed representation and computation (e.g. training on GPU, clusters) --> much what symbolic AI is not (mainly search algorithms, SAT solvers)
-% Started in the late 1950s with the perceptron.
-
-\subsection{Deep learning}
-% Rebranded as deep learning, achieve now astonishing results in a variety of fields (computer vision, NLP, machine translation, knowledge representation, automatic control)
-% Deep learning: hierarchical feature learning --> we are not really using that (yet)
-% Deep architectures can approximate any function (RNN any program, i.e. Turing complete)
-% First fall of NN (success of kernel methods / SVM) (first AI winter ?) because perceptron was proved to not be sufficient, multi-layer was too hard (computation and training)
-% Computationally expensive to train
-% Needed to invent backpropagation to train multiple layers
-% Hard to train: problem of vanishing gradient
-% Objective function is highly non-convex.
-
-\section{Sparse coding} \label{sparse_coding}
+\section{Sparse coding} \label{sec:sparse_coding}
 % What it is, why it works, why it's good.
 % paper who demonstrates that L1 penalty leads to same solution as L0 while being convex, not combinatorial
 
 % Sparse coding.
-The main idea behind sparse coding {\color{red} [ref]} is to express a signal $\x \in \R^n$ as a sparse linear combination of basis functions $\set{\d}{m}$, or atoms, from an overcomplete ($m>n$) dictionary $\D \in \R^{n \times m}$. The sparse code $\z^* \in \R^m$ is given by
+Sparsity has become a concept of great interest recently, not only in
+machine learning but also in statistics and signal processing, in particular with the work on compressed sensing \cite{candes2005CS, donoho2006CS}. The main idea behind sparse coding {\color{red} [ref]} is to express a signal $\x \in \R^n$ as a sparse linear combination of basis functions $\set{\d}{m}$, or atoms, from an overcomplete ($m>n$) dictionary $\D \in \R^{n \times m}$. The sparse code $\z^* \in \R^m$ is given by
 \begin{equation}\label{eqn:sparsecoding}
 	\z^* = \argmin{\z} \frac{\lambda_d}{2} \normT{\x - \D \z} + \lambda_z \normZ{\z}
 \end{equation}
@@ -242,7 +232,7 @@ Finding the sparse code $\z^*$ however requires a combinatorial search which is 
 \begin{equation}\label{eqn:basispursuit}
 	\z^* = \argmin{\z} \frac{\lambda_d}{2} \normT{\x - \D \z} + \lambda_z \normO{\z}
 \end{equation}
-where $\normO{\z} = \sum_{i=1}^{m} |z_i|$ is the $\ell_1$ norm of $\z$ (also called the Taxicab or Manhattan norm). It has been shown that its solution is optimal, i.e. a solution of \eqnref{eqn:sparsecoding}, provided it is sparse enough \cite{donoho2003OptSparse}. {\color{red}link with \gls{RIP}}. A number of algorithms have been proposed to efficiently solve this problem \cite{chen1998BasisPursuit, beck2009FISTA, ng2006EfficientSparse, li2009Coordinate} {\color{red} [others]}. They however still rely on computationally expensive iterative procedures which limit the system's scalability and real-time applications. While a direct method will always be preferred for feature extraction, iterative methods will still be necessary during training. Distributed computing with \gls{GPU} or via cloud computing will hopefully accelerate the process.
+where $\normO{\z} = \sum_{i=1}^{m} |z_i|$ is the $\ell_1$ norm of $\z$ (also called the Taxicab or Manhattan norm). As is now well understood \cite{candes2005CS, donoho2006CS}, the $\ell_1$ norm is a very good proxy for the $\ell_0$ norm and naturally induces sparse results. It can even be shown to recover exactly the true sparse code, i.e. the solution of \eqnref{eqn:sparsecoding} (if there is one), under mild conditions \cite{donoho2003OptSparse}. {\color{red}link with \gls{RIP}}. A number of algorithms have been proposed to efficiently solve this problem \cite{chen1998BasisPursuit, beck2009FISTA, ng2006EfficientSparse, li2009Coordinate} {\color{red} [others]}. They however still rely on computationally expensive iterative procedures which limit the system's scalability and real-time applications. While a direct method will always be preferred for feature extraction, iterative methods will still be necessary during training. Distributed computing with \gls{GPU} or via cloud computing will hopefully accelerate the process.
 
 \subsection{Dictionary learning}
 
@@ -273,15 +263,15 @@ Overcomplete dictionaries are good for classification as they allow for an easie
 
 \paragraph{Regularization}
 The Tikhonov regularization, or ridge regression, is a commonly used prior of the form $\lambda \normT{\mathbf{\Gamma} \z}$ where $\mathbf{\Gamma}$ is the Tikhonov matrix. This matrix is often chosen to be a multiple of the identity matrix, i.e. $\mathbf{\Gamma} = \alpha \mathbf{I}$, giving preference to solutions with smaller norms. In a Bayesian context, this is equivalent to placing a zero-mean normally distributed prior on $\z$. In other cases, lowpass operators (e.g., a difference operator or a weighted Fourier operator) may be used to enforce smoothness if the underlying vector is believed to be mostly continuous. We will introduce a regularization of this kind to our model in section \ref{graph_regularization}.
-Another commonly used regularization is the \gls{LASSO}, which adds the term $\lambda \normO{\z}$ to the minimization problem \cite{tibshirani1996Lasso}. In a Bayesian context, this is equivalent to placing a zero-mean Laplace prior distribution on $\z$ \cite{park2008BayesianLasso}. As we have seen in section \ref{sparse_coding}, we use this prior in our model to enforce sparsity. The advantage of the \gls{LASSO} is that it promotes the simplest solutions, i.e. the solutions with many zeros. Driving parameters to zero effectively deselects the features from the regression. \gls{LASSO} thus automatically selects the most relevant features, whereas ridge regression never fully discards any. For this reason, the \gls{LASSO} and its variants are fundamental to the field of \gls{CS}.
+Another commonly used regularization is the \gls{LASSO}, which adds the term $\lambda \normO{\z}$ to the minimization problem \cite{tibshirani1996Lasso}. In a Bayesian context, this is equivalent to placing a zero-mean Laplace prior distribution on $\z$ \cite{park2008BayesianLasso}. As we have seen in \ref{sec:sparse_coding}, we use this prior in our model to enforce sparsity. The advantage of the \gls{LASSO} is that it promotes the simplest solutions, i.e. the solutions with many zeros. Driving parameters to zero effectively deselects the features from the regression. \gls{LASSO} thus automatically selects the most relevant features, whereas ridge regression never fully discards any. For this reason, the \gls{LASSO} and its variants are fundamental to the field of \gls{CS}.
 An extension of this approach is the elastic net regularization which linearly combines the $\ell_1$ and $\ell_2$ penalties of the \gls{LASSO} and ridge methods. This regularization overcomes some limitations of the $\ell_1$ penalty, e.g. the saturation which happens for high-dimensional data with few examples, or the fact that the \gls{LASSO} tends to select only one variable and ignore the others if there is a group of highly correlated variables \cite{zou2005ElasticNet}.
 
-\subsection{Encoder}
+\subsection{Encoder} \label{sec:encoder}
 % Problem: these methods are slow at inferring sparse codes as they need iterations
 % --> train an encoder
 
 % Why ?
-In order to avoid the iterative procedure typically required to infer the sparse code, we aim at an encoder which can quickly map inputs to approximations of their sparse code. Several works \cite{lecun2010PSD, lecun2010LISTA, lecun2013DrSAE} {\color{red} [others not from LeCun]} has been done in this direction.
+In order to avoid the iterative procedure typically required to infer the sparse code, we aim at an encoder which can quickly map inputs to approximations of their sparse code. Several works \cite{lecun2010PSD, lecun2010LISTA, lecun2013DrSAE} {\color{red} [others not from LeCun]} has been done in this direction. The addition of an encoder to the sparse coding scheme leads to a variant of auto-encoders called sparse auto-encoders which we will introduce in \ref{sec:auto_encoders}.
 
 % 2nd motivation.
 Moreover, adding structure to the problem should enhance the behavior of the loss function and help sparse recovery \cite{kowalski2009sparse, baraniuk2010modelCS, huang2011LearningStructuredSparsity, jenatton2011structured} {\color{red}Then \cite{donoho2003OptSparse} should not be strong enough.}
@@ -300,14 +290,39 @@ where $\e_k$ are the columns of $\E$. Again, the $\ell_1$ penalty $\normO{\E \X}
 
 While it is often a good idea to control the energy, the constraint on the columns of $\E$ is not needed in practice. While the columns of $\D$ are constrained to a norm smaller than one, they are in practice normalized because of the $\normO{\Z}$ objective. The energy of a vector transformed by $\D$ does thus not change, which means that the inferred sparse code $\z_i$ as the same energy as its corresponding vector $\x_i$. The encoder does then not need to add energy and will have a column norm smaller than one, even without the constraint. It has been verified in practice, see {\color{red} Fig}.
 
-\section{Auto-encoders}
+\section{Neural networks}
+% Why ? Distributed representation and computation (e.g. training on GPU, clusters) --> much what symbolic AI is not (mainly search algorithms, SAT solvers)
+% Started in the late 1950s with the perceptron.
+
+\subsection{Deep learning}
+% Rebranded as deep learning, achieve now astonishing results in a variety of fields (computer vision, NLP, machine translation, knowledge representation, automatic control)
+% Deep learning: hierarchical feature learning --> we are not really using that (yet)
+% Deep architectures can approximate any function (RNN any program, i.e. Turing complete)
+% First fall of NN (success of kernel methods / SVM) (first AI winter ?) because perceptron was proved to not be sufficient, multi-layer was too hard (computation and training)
+% Computationally expensive to train
+% Needed to invent backpropagation to train multiple layers
+% Hard to train: problem of vanishing gradient
+% Objective function is highly non-convex.
+
+\subsection{Auto-encoders} \label{sec:auto_encoders}
 % For unsupervised learning, i.e. feature extraction.
 % Auto-encoders as a manifold learning tool (Bengio review).
 
-\subsection{Sparse auto-encoders}
+An auto-encoder, auto-associator or Diabolo network is an artificial neural network composed of $n$ input and output units and $m$ hidden units. It is used for learning efficient codings \cite{bourlard1988autoencoder, hinton1994autoencoder}. The aim of an auto-encoder is to learn a distributed representation (encoding) for a set of data. An auto-encoder is trained to encode the input $\x \in \R^n$ into some representation $\z \in \R^m$ so that the input can be reconstructed from that representation. It is thus a generative model. Hence the target output of the auto-encoder is the auto-encoder input itself. Auto-encoders may further be stacked to form a \gls{DBN}, while each layer can be trained separately \cite{bengio2007DBN, lecun2006stackedSparseAutoencoders}.
+% Stacked Auto-Encoders, not DBN
 
-\subsection{Denoising auto-encoders}
-% Compare with denoising auto-encoders
+% if linear activations are used, or only a single sigmoid hidden layer, then the optimal solution to an auto-encoder is strongly related to principal component analysis (PCA).[5]
+If there is one linear hidden layer and the mean squared error criterion is used to train the network, then the $k$ hidden units learn to project the input in the span of the first $k$ principal components of the data \cite{bourlard1988autoencoder}. If the hidden layer is non-linear, the auto-encoder behaves differently from PCA, with the ability to capture multi-modal aspects of the input distribution \cite{japkowicz2000autoencoderPCA}.
+
+The hope is that the code $\z$ is a distributed representation that captures the main factors of variation in the data: because $\z$ is viewed as a lossy representation of $\x$, it cannot be a good representation (with small loss) for all $\x$. So learning drives it to be one that is a good representation in particular for training examples, and hopefully for others as well (and that is the sense in which an auto-encoder generalizes), but not for arbitrary inputs.
+
+It can typically be used for dimensionality reduction by learning a compressed ($m<n$) representation of the data. Another application is feature extraction before classification, for which we want an higher dimensionality ($m>n$) for easier separability. One serious issue with this approach is that if there is no other constraint, then an auto-encoder with $n$-dimensional input and an encoding of dimension $m \geq n$ could potentially just learn the identity function. There are different ways that an auto-encoder with more hidden units than inputs could be prevented from learning the identity, and still capture something useful about the input in its hidden representation $\z$.
+
+\paragraph{Denoising auto-encoders}
+One strategy is to add noise in the encoding. The denoising auto-encoder thus minimizes the error in reconstructing the input from a stochastically corrupted transformation of the input \cite{bengio2008denoisingAutoencoders}. Intuitively, a denoising auto-encoder does two things: try to encode the input (preserve the information about the input), and try to undo the effect of a corruption process stochastically applied to the input of the auto-encoder. This is essentially what a \gls{RBM} does \cite{hinton2002RBM}.
+
+\paragraph{Sparse auto-encoders}
+Another strategy, based on the concept of sparse coding, is to add a sparsity constraint on the code. While an ordinary auto-encoder or an \gls{RBM} has an encoder part which computes $P(\z|\x)$ and a decoder part which computes $P(\x|\z)$, sparse coding systems only parametrize the decoder: the encoder is defined implicitly as the solution of an optimization. A middle ground between ordinary auto-encoders and sparse coding was proposed in \cite{lecun2006stackedSparseAutoencoders, ranzato2007stackedSparseAutoencoders} and applied to pattern recognition and machine vision tasks. They propose to let the codes $\z$ be free (as in sparse coding algorithms), but include a parametric encoder (as in an ordinary auto-encoder or \gls{RBM}) and a penalty for the difference between the free non-parametric codes $\z$ and the outputs of the parametric encoder. In this way, the optimized codes $\z$ try to satisfy two objectives: reconstruct well the input (like in sparse coding), while not being too far from the output of the encoder (which is stable by construction, because of the simple parametrization of the encoder). See \secref{sec:encoder} for the definition of our encoder.
 
 \chapter{Convex optimization}
 
@@ -376,6 +391,8 @@ While it is often a good idea to control the energy, the constraint on the colum
 
 \chapter{Model}
 % Visual diagram
+% energy-based model
+% the sparsity constraint prevents the auto-encoder to learn the identity
 
 \section{Hypothesis}
 
