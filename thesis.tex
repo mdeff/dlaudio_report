@@ -2,7 +2,7 @@
 
 \usepackage[T1]{fontenc} \usepackage{lmodern} \usepackage[utf8]{inputenc}
 \usepackage[english]{babel} \usepackage{csquotes}
-\usepackage{float} \usepackage{graphicx,subfig}
+\usepackage{float} \usepackage{graphicx,subcaption} \usepackage{subcaption}
 \usepackage{amssymb,amsmath} \usepackage{siunitx}
 \usepackage[style=numeric,backend=biber]{biblatex} \bibliography{refs}
 \usepackage[top=4cm,bottom=4cm,left=3cm,right=3cm,headheight=15pt]{geometry}
@@ -24,7 +24,7 @@
 \newacronym{ANNs}{ANNs}{Artificial Neural Networks}
 \newacronym{CNN}{CNN}{Convolutional Neural Network}
 \newacronym{RNN}{RNN}{Recursive Neural Network}
-\newacronym{LTSM}{LTSM}{Long Short Term Memory}
+\newacronym{LSTM}{LSTM}{Long Short Term Memory}
 \newacronym{MLP}{MLP}{Multi-Layer Perceptron}
 \newacronym{RBM}{RBM}{Restricted Boltzmann Machine}
 \newacronym{DBN}{DBN}{Deep Belief Network}
@@ -49,6 +49,7 @@
 \newcommand{\figref}[1]{Figure~\ref{#1}}
 \newcommand{\tabref}[1]{Table~\ref{#1}}
 \newcommand{\secref}[1]{Section~\ref{#1}}
+\newcommand{\chapref}[1]{Chapter~\ref{#1}}
 \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
 
 \newcommand{\R}{\mathbb{R}}
@@ -77,6 +78,7 @@
 \newcommand{\Etwo}{E_2(\Z, \D, \E)}
 \newcommand{\Ethree}{E_3(\Z, \D, \E)}
 \newcommand{\G}{\mathcal{G}}
+\newcommand{\V}{\mathcal{V}}
 \newcommand{\set}[2]{\{#1_i\}_{i=1}^#2}
 \newcommand{\st}{\text{ s.t. }}
 \newcommand{\cst}[2]{\|#1_#2\|_2 \leq 1}
@@ -169,18 +171,19 @@
 \chapter*{Introduction}
 \addcontentsline{toc}{chapter}{Introduction}
 
-{\color{red} Introduction to introduction to subject.}
+{\color{red} Introduction to subject.}
 
 This work was accomplished as a Master thesis, which is an integral part of the major in Information Technologies curriculum from the Electrical and Electronic Section of the \gls{EPFL}. It was conducted at the LTS2 laboratory\footnote{The laboratory homepage is accessible at \url{http://lts2www.epfl.ch/}.}.
 
 While the project was ongoing, I continuously published my thoughts, observations, findings, experiments, results and plans as well as a summary of the weekly meetings with my supervisors on an online blog\footnote{My research blog is available at \url{https://lts2research.epfl.ch/blog/mdeff/}.} in the format of an open laboratory notebook\footnote{\url{http://en.wikipedia.org/wiki/Open_notebook_science}}. The code, as well as the results, this report and the ongoing paper is versioned with git and available online through GitHub\footnote{My GitHub account can be found at \url{https://github.com/mdeff}.}. A continuation of this work shall be submitted to the 41st IEEE \gls{ICASSP}.
+
+This thesis is divided in two parts: 
 
 \section*{Motivation}
 \addcontentsline{toc}{section}{Motivation}
 
 \section*{Background}
 \addcontentsline{toc}{section}{Background}
-\label{background}
 
 \section*{Related work}
 \addcontentsline{toc}{section}{Related work}
@@ -267,7 +270,7 @@ Overcomplete dictionaries are good for classification as they allow for an easie
 % overcompleteness must be evaluated by considering the number of code units and the effective dimensionality of the input as given by PCA
 
 \paragraph{Regularization}
-The Tikhonov regularization, or ridge regression, is a commonly used prior of the form $\lambda \normT{\mathbf{\Gamma} \z}$ where $\mathbf{\Gamma}$ is the Tikhonov matrix. This matrix is often chosen to be a multiple of the identity matrix, i.e. $\mathbf{\Gamma} = \alpha \mathbf{I}$, giving preference to solutions with smaller norms. In a Bayesian context, this is equivalent to placing a zero-mean normally distributed prior on $\z$. In other cases, lowpass operators (e.g., a difference operator or a weighted Fourier operator) may be used to enforce smoothness if the underlying vector is believed to be mostly continuous. We will introduce a regularization of this kind to our model in section \ref{graph_regularization}.
+The Tikhonov regularization, or ridge regression, is a commonly used prior of the form $\lambda \normT{\mathbf{\Gamma} \z}$ where $\mathbf{\Gamma}$ is the Tikhonov matrix. This matrix is often chosen to be a multiple of the identity matrix, i.e. $\mathbf{\Gamma} = \alpha \mathbf{I}$, giving preference to solutions with smaller norms. In a Bayesian context, this is equivalent to placing a zero-mean normally distributed prior on $\z$. In other cases, lowpass operators (e.g., a difference operator or a weighted Fourier operator) may be used to enforce smoothness if the underlying vector is believed to be mostly continuous. We will introduce a regularization of this kind to our model in \secref{sec:graph_regularization}.
 Another commonly used regularization is the \gls{LASSO}, which adds the term $\lambda \normO{\z}$ to the minimization problem \cite{tibshirani1996Lasso}. In a Bayesian context, this is equivalent to placing a zero-mean Laplace prior distribution on $\z$ \cite{park2008BayesianLasso}. As we have seen in \ref{sec:sparse_coding}, we use this prior in our model to enforce sparsity. The advantage of the \gls{LASSO} is that it promotes the simplest solutions, i.e. the solutions with many zeros. Driving parameters to zero effectively deselects the features from the regression. \gls{LASSO} thus automatically selects the most relevant features, whereas ridge regression never fully discards any. For this reason, the \gls{LASSO} and its variants are fundamental to the field of \gls{CS}.
 An extension of this approach is the elastic net regularization which linearly combines the $\ell_1$ and $\ell_2$ penalties of the \gls{LASSO} and ridge methods. This regularization overcomes some limitations of the $\ell_1$ penalty, e.g. the saturation which happens for high-dimensional data with few examples, or the fact that the \gls{LASSO} tends to select only one variable and ignore the others if there is a group of highly correlated variables \cite{zou2005ElasticNet}.
 
@@ -386,16 +389,32 @@ Another strategy, based on the concept of sparse coding, is to add a sparsity co
 \chapter{Spectral graph theory}
 % Paper: Pierre's review
 
-\section{Manifold}
-% The graph is a discrete approximation of the unknown manifold. We sample the manifold.
-
-\section{Graph}
+%\section{Graph definition}
 % What is a graph --> discrete approximation of a low-dimensional manifold embedded in a high dimensional space.
-% Type of graph (KNN vs epsilon), kernel (Gaussian, polynomial), distance (Euclidean, cosine)
 
-\subsection{Approximate KNN search}
-% How FLANN works, what are the alternatives.
-% Techniques: KDtree, ball, local hashes (LHS)
+% General formulation.
+Graphs are generic data representation forms which are useful for describing the geometric structures of data domains in numerous applications, including social, energy, transportation, sensor, and neuronal networks. The connectivity and weight associated with each edge in the graph is either dictated by the physics of the problem at hand or inferred from the data; in which case it often represents the similarity between the two vertices it connects. For instance, the edge weight may be inversely proportional to the physical distance between nodes in the network, or proportional to a similarity measure between those nodes. A \textit{graph signal} is a signal which resides on the graph, i.e. a signal with one sample at each vertex of the graph. An example of a graph signal is shown in \figref{example_graph}.
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[height=6cm]{img/example_graph}
+	\caption[]{A random positive graph signal on the vertices of the Petersen graph. The height of each blue bar represents the signal value at the vertex where the bar originates.\footnotemark}
+	\label{example_graph}
+\end{figure}
+\footnotetext{Image from \cite{pierre2013graph}.}
+
+Weighted graphs are commonly used to represent similarities between data points in statistical learning problems for applications such as machine vision
+[2] and automatic text classification [3].
+
+We first review some basic definitions and notations from spectral graph theory and then show how we can use a graph to approximate a manifold.
+
+\subsection{Weighted Graphs and Graph Signals}
+
+
+A graph $\G$
+
+\subsection{Type}
+% Type of graph (KNN vs epsilon)
 
 \subsection{Distance metric}
 % euclidean (small dim) and cosine (angular, high dim)
@@ -406,18 +425,56 @@ Another strategy, based on the concept of sparse coding, is to add a sparsity co
 \section{Spectrum}
 % What does the spectrum / Fourier transform mean: examples on a 3D point cloud.
 % Faster way to compute FT: Chebyshev approximation (filter bank)
+% We do not use that.
+
+There is more to spectral graph theory than what we use in this project. A number of transform methods, like the Fourier or wavelet transforms, have been defined on arbitrary graphs. Common data processing tasks in these applications include filtering, denoising, inpainting, and compressing graph signals.
+
 
 \section{Laplacian}
-% The graph Laplacian is an approximation of the Laplace-Beltrami operator. --> Dirichlet energy
+% The graph (normalized) Laplacian is an approximation of the Laplace-Beltrami operator. --> Dirichlet energy
 % normalized vs un-normalized, cite normalized approximates the Laplace-Beltrami operator
 % A way to test if the Laplacian is well constructed is... (see blog)
 % Another regularization on Z. Like Thikonov with the graph Laplacian as the Tikhonov matrix (difference operator). It enforces smoothness on the graph / manifold.
 
-\section{Regularization} \label{graph_regularization}
+\section{Manifold approximation}
 
-\part{Contributions} \label{contributions}
+% General introduction.
+In mathematics, a manifold is a topological space that resembles Euclidean space near each point, i.e. each point of an $n$-dimensional manifold has a neighborhood that is homeomorphic to the Euclidean space of dimension $n$. Lines and circles, but not figure eights, are one-dimensional manifolds. Two-dimensional manifolds are also called surfaces. Examples include the plane, the sphere, and the torus, which can all be embedded in three-dimensional real space. \figref{fig:manifolds} shows examples of 1D and 2D manifolds.
+
+\begin{figure}[ht]
+	\centering
+	\begin{subfigure}[b]{0.49\textwidth}
+		\centering
+		\includegraphics[height=6cm]{img/circle_manifold_charts}
+		\caption{}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.49\textwidth}
+		\centering
+		\includegraphics[height=6cm]{img/klein_bottle}
+		\caption{}
+	\end{subfigure}
+	\caption[]{Examples of manifolds.\footnotemark (a) The circle, a 1D manifold, can be mapped by 4 charts. (b) The klein bottle is a 2D manifold that cannot be embedded in a 3D space without self-intersection.}
+	\label{fig:manifolds}
+\end{figure}
+\footnotetext{Images from Wikipedia.}
+
+% Example close to our case.
+Let's imagine a single handwritten digit recognition system. The input is an image of $n \times n$ pixels which is represented by a vector $\x \in \R^{n \times n}$. However, not all vectors $\x \in \R^{n \times n}$ represent meaningful data. The vast majority indeed represents garbage. We may make the hypothesis that the set of plausible digits lies on a $d$-dimensional manifold where $d \leq n \times n$.
+
+% Approximate a manifold.
+The problem is that we often ignore the shape of the embedded manifold. We only have at our disposal some samples which are drawn from it, e.g. a few examples of handwritten digits. Another example with object scanning: we obtain a discrete point cloud sampled from the surface. We do know some points on the surface, but we don't know the exact surface.
+
+We use graphs as discrete approximations of low-dimensional manifolds embedded in high-dimensional spaces. The set of data are samples drawn from this unknown manifold.
+
+\section{Regularization} \label{sec:graph_regularization}
+
+\part{Contributions} \label{part:contributions}
 % Proposed method / method
 % Based on the introduced methods, explain what we did.
+
+\chapter{Model} \label{chap:model}
+% Visual diagram: pre-processing, feature extraction, post-processing, classification
+% energy-based model
 
 \section{Hypothesis}
 
@@ -427,13 +484,11 @@ Another strategy, based on the concept of sparse coding, is to add a sparsity co
 % Structured: adding similarity information between inputs
 % Manifold: not all possible signals are reasonable / feasible
 
+\section{Model}
+
 % Finish with the complete objective function.
 % Why energy function ? Many laws of nature are nothing but optimality conditions, often expressed in terms of a minimum energy principle.
 % Easy to add and remove terms.
-
-\chapter{Model}
-% Visual diagram
-% energy-based model
 % the sparsity constraint prevents the auto-encoder to learn the identity
 
 {\color{red} Image with input x and hidden z. Output is y=sh(Ex). Weight matrices are D and E with sh() activation function. Approximately.}
@@ -442,6 +497,10 @@ Another strategy, based on the concept of sparse coding, is to add a sparsity co
 % Auto-encoders: terms ..
 % Manifold learning: terms ..
 % Regularized least square (elastic net): terms ..
+
+In our genre recognition setting, a patch spectrogram\footnote{We will define it precisely in \chapref{chap:model}, think of it as the spectrogram of some short time frame.} $\x \in \R^n$ is embedded in an $n$-dimensional space. Not all $n$-dimensional signals, however, are plausible spectrograms. We may think of the set of plausible spectrograms to lie on a lower $k$-dimensional manifold which is embedded in the $n$-dimensional space.
+
+Our overall model may be thought as an hybrid between a sparse and a denoising auto-encoder.
 
 \section{Graph construction}
 % Similarity measure
@@ -487,6 +546,10 @@ Another strategy, based on the concept of sparse coding, is to add a sparsity co
 \subsection{Algorithm}
 % FISTA vs PD implementation
 
+\subsection{Approximate KNN search}
+% How FLANN works, what are the alternatives.
+% Techniques: KDtree, ball, local hashes (LHS)
+
 \subsection{Optimization for space}
 % Optimization for space: avoid copy, modify in place, float32, store Z as scipy.sparse
 
@@ -496,7 +559,6 @@ Another strategy, based on the concept of sparse coding, is to add a sparsity co
 % Linear algebra: optimized version of BLAS: ATLAS and OpenBLAS. (LINPACK)
 
 \chapter{Results}
-\label{results}
 % Results and comparisons
 % Include discussion in results ?
 
@@ -525,12 +587,10 @@ Another strategy, based on the concept of sparse coding, is to add a sparsity co
 % Comparison with other techniques.
 
 \chapter{Discussion}
-\label{discussion}
 % Discussion of our results. Strengths and weaknesses of our method.
 
 \chapter*{Conclusion}
 \addcontentsline{toc}{chapter}{Conclusion}
-\label{conclusion}
 
 \section*{Future work}
 \addcontentsline{toc}{section}{Future work}
@@ -567,7 +627,6 @@ Another strategy, based on the concept of sparse coding, is to add a sparsity co
 
 \chapter*{Annexes}
 \addcontentsline{toc}{chapter}{Annexes}
-\label{annexes}
 
 \section*{Conference paper}
 \addcontentsline{toc}{section}{Conference paper}
