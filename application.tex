@@ -1,0 +1,123 @@
+\part{Application} \label{part:application}
+% Apply the developed algorithm to a problem, MGR in our case.
+
+\chapter{Problem} \label{chap:problem}
+% Explain the problem we aim at solving: recognizing musical genre while being robust for e.g. deployement on a smartphone which may well be in a noisy environment.
+We think that this problem satisfies the hypothesizes we made in 
+
+%\section{Genres}
+% How we can qualitatively distinguish genres.
+
+% Music theory
+% Explain how music is constructed.
+%\section{Notes and frequencies}
+%\section{Harmonics, chords and harmonies}
+
+%In our genre recognition setting, a patch spectrogram\footnote{We will define it precisely in \chapref{model}, think of it as the spectrogram of some short time frame.} $\x \in \R^n$ is embedded in an $n$-dimensional space. Not all $n$-dimensional signals, however, are plausible spectrograms. We may think of the set of plausible spectrograms to lie on a lower $k$-dimensional manifold which is embedded in the $n$-dimensional space.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\chapter{System} \label{chap:system}
+% Visual diagram: pre-processing, feature extraction, post-processing, classification, voting
+% Inspyred by [ref lecun] which uses sparse auto-encoders.
+
+Similarly to us, the authors of \cite{lecun2011PSDaudio} used a layer of sparse auto-encoder to learn sparse representations of audio spectrograms. They introduced a technique called \gls{PSD} to quickly infer an approximation of the sparse codes \cite{lecun2010PSD}, which is effectively a sparse auto-encoder.
+
+The structuring auto-encoder developed in \partref{algorithm} generalizes their loss function as an energy function and introduces a structuring term. We also introduced a well-posed iterative scheme to solve the resulting non-convex optimization problem in \chapref{learning}.
+
+\section{Pre-processing}
+% Frames, CQT, LCN, feature / sample normalization
+% A LCN may further increase the accuracy [ref LeCun].
+
+\subsection{Frames}
+
+\subsection{Constant-Q transform}
+% Spectrogram with geometrically spaced frequencies.
+
+\section{Feature extraction}
+% Most accurate extraction with original model.
+% Much faster approximations by ignoring some terms of the objective.
+
+\section{Classification}
+% Feature aggregation (feature vectors), linear SVM, majority voting (winner take all)
+% Voting further gives a cheap confidence level about our choice.
+% Multi-class: one-vs-one / one-vs-the-rest
+
+\subsection{Feature aggregation}
+
+\subsection{Support Vector Machine}
+% Small introduction to SVM.
+
+\subsection{Majority voting}
+
+\subsection{Cross-validation}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\chapter{Implementation} \label{chap:implementation}
+
+\section{Framework}
+% Stack: numpy, scipy, matplotlib, scikit-learn, librosa
+% Tools: IPython notebook, CDK cluster, matplotlib, h5py, librosa
+% Explain why and how data is stored (layout) via HDF5.
+
+\subsection{PyUNLocBoX}
+% PyUNLocBoX: explains how it works
+
+\section{Design}
+
+\section{Performance}
+
+\subsection{Algorithm}
+% FISTA vs PD implementation
+
+\subsection{Approximate KNN search}
+% How FLANN works, what are the alternatives.
+% Techniques: KDtree, ball, local hashes (LHS)
+
+\subsection{Optimization for space}
+% Optimization for space: avoid copy, modify in place, float32, store Z as scipy.sparse
+
+\subsection{Optimization for speed}
+% Optimization for speed: ATLAS/OpenBLAS, float32 (memory bandwidth), projection in the ball (not on the sphere)
+% ATLAS mono-threaded (at least on Ubuntu), OpenBLAS multi-threaded.
+% Linear algebra: optimized version of BLAS: ATLAS and OpenBLAS. (LINPACK)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\chapter{Results} \label{chap:results}
+% Results and comparisons
+% Include discussion in results ?
+
+\section{Spectrograms}
+% Show example spectrograms of jazz / blues. Show how they are different (music theory) and can such be distinguished.
+
+\section{Learned features}
+% Show some atoms: harmonics, chords, harmonies, drums.
+% Probably not on full CQT, should be on octaves.
+
+\section{Descriptive feature vectors}
+% Show aggregated feature vectors for some genres.
+% How is it qualitatively more discriminative than the spectrogram ?
+
+\section{Hyper-parameters tuning}
+% Test matrix for hyper-parameters on smaller problem (i.e. less frames).
+% For ld, le, lg, m
+% Numerical parameters: Nouter (enough when no more inner), rtol
+% Graph parameters: K, Csigma, kernel?, metric
+% Classification: C, Nvectors
+% Pre-processing: na=1024, ns=96
+
+\section{Classification accuracy}
+% Measured via 10-fold cross-validation
+% How classification is improved by feature learning, introducing the encoder / graph.
+% Comparison with other techniques.
+
+\section{Discussion}
+% Is the model appropriate for the problem ?
