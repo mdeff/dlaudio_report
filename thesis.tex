@@ -44,6 +44,10 @@
 \newacronym{LASSO}{LASSO}{Least Absolute Shrinkage and Selection Operator}
 \newacronym{AGC}{AGC}{Automatic Gain Control}
 \newacronym{kNN}{kNN}{k Nearest Neighbors}
+\newacronym{PCA}{PCA}{Principal Component Analysis}
+\newacronym{NLDR}{NLDR}{Non-Linear Dimensionality Reduction}
+\newacronym{SOM}{SOM}{Self-Organizing Map}
+\newacronym{LLE}{LLE}{Locally-Linear Embedding}
 
 \newcommand{\partref}[1]{Part~\ref{part:#1}}
 \newcommand{\chapref}[1]{Chapter~\ref{chap:#1}}
@@ -217,11 +221,15 @@
 % NN is well suited for representation learning
 % We want unsupervised feature learning vs supervised vs hand-crafted
 
-This thesis is divided in two parts. Through \partref{algorithm}, the proposed model is introduced by a motivation in \chapref{motivation} and constructed step by step in \chapref{model}. \chapref{learning} describes how it learns while \chapref{related_work} compares it to existing models. An application to \gls{MGR} is proposed in \partref{application} with a presentation of the problem in \chapref{problem}, our proposed system in \chapref{system} along with some implementation details in \chapref{implementation}. \chapref{results} is dedicated to the presentation of the experimental results.
+% What will be presented. Design goal.
+This thesis introduces a new auto-encoder variant which we call a \textit{structuring auto-encoder}; because it keeps the structure of the data while transforming it in another representation. As we shall see, it has the properties of an hybrid between a sparse auto-encoder \cite{lecun2006sparseAutoencoders, ranzato2007stackedSparseAutoencoders} and a denoising auto-encoder \cite{bengio2008denoisingAutoencoders}. The primary goal of the proposed algorithm is unsupervised representation learning toward the goal of feature extractions, while being robust to noisy data and fast at feature extraction (after the training phase). The quality of the extracted features shall be evaluated through a classification task.
+
+% Plan.
+This thesis is divided in two parts. Through \partref{algorithm}, the proposed model is introduced by a motivation in \chapref{motivation} and constructed step by step in \chapref{model}. \chapref{learning} describes how it learns while \chapref{related_work} compares it to existing models. As a testbed of our algorithm's performance, an application to \gls{MGR} is proposed in \partref{application} with a presentation of the problem in \chapref{problem}, our proposed system in \chapref{system} along with some implementation details in \chapref{implementation}. \chapref{results} is dedicated to the presentation of the experimental results.
 
 This work was accomplished as a Master thesis, which is an integral part of the major in Information Technologies curriculum from the Electrical and Electronic Section of the \gls{EPFL}. It was conducted at the LTS2 laboratory\footnote{The laboratory homepage is accessible at \url{http://lts2www.epfl.ch/}.}.
 
-While the project was ongoing, I continuously published my thoughts, observations, findings, experiments, results and plans as well as a summary of the weekly meetings with my supervisors on an online blog\footnote{My research blog is available at \url{https://lts2research.epfl.ch/blog/mdeff/}.} in the format of an open laboratory notebook\footnote{\url{http://en.wikipedia.org/wiki/Open_notebook_science}}. The code, as well as the results, this report and the ongoing paper are versioned with git and available online through GitHub\footnote{My GitHub account can be found at \url{https://github.com/mdeff}.}. A continuation of this work shall be submitted to the 41st IEEE \gls{ICASSP}.
+While the project was ongoing, I continuously published my thoughts, observations, findings, experiments, results and plans as well as a summary of the weekly meetings with my supervisors on an online blog\footnote{My research blog is available at \url{https://lts2research.epfl.ch/blog/mdeff/}.} in the format of an open laboratory notebook. In the spirit of open research, the code as well as all the results, this report and the ongoing paper are versioned with git and available online through GitHub\footnote{My GitHub account can be found at \url{https://github.com/mdeff}.}. Some continuation of this work shall be submitted to the 41st IEEE \gls{ICASSP}. We may also aim at a journal paper at the end of the project.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -241,17 +249,14 @@ While the project was ongoing, I continuously published my thoughts, observation
 \section*{Future work}
 \addcontentsline{toc}{section}{Future work}
 
-%\paragraph{Encoder}
-
-\paragraph{LCN}
-% Not if we cannot justify.
-
-%\paragraph{Individual octaves}
+\paragraph{Encoder}
+% Verify the hypothesis
 
 \paragraph{TV norm}
 % TV norm on the graph instead of Dirichlet energy
 
 \paragraph{Distributed implementation}
+% Details ?
 % Train chunks of D / Z via independant threads.
 % Directly in the PyUNLocBoX ?
 % Usefull only if we are not memory bandwidth limited.
@@ -260,6 +265,7 @@ While the project was ongoing, I continuously published my thoughts, observation
 
 \paragraph{Multiple layers}
 % Multiple layers of auto-encoders
+% In spite of deep learning methods
 % Reference to DBN: stacks of RBM, Stacked auto-encoders.
 
 %\subsection{Deep learning}
@@ -273,10 +279,12 @@ While the project was ongoing, I continuously published my thoughts, observation
 % Objective function is highly non-convex.
 % popularized by CNN.
 
-\paragraph{End-to-end learning}
+%\paragraph{End-to-end learning}
+% For the application, not the algorithm.
 % Learn features right from raw audio. If spectrograms are good features, we should retrieve them.
 
 %\paragraph{Domain knowledge}
+% For the application, not the algorithm.
 % Incorporate some domain knowledge about the dictionary via priors. Then it's not supervised anymore.
 % Priors on the dictionary who are not necessarily domain specific, i.e. are general enough to apply to other kind of data.
 

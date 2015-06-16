@@ -30,7 +30,7 @@ However, in an unsupervised learning setting, there is no desired output, which 
 % For unsupervised learning, i.e. feature extraction.
 % Auto-encoders as a manifold learning tool (Bengio review).
 
-An auto-encoder, auto-associator or Diabolo network is an artificial neural network composed of $n$ input and output units and $m$ hidden units. It is used for learning efficient codings \cite{bourlard1988autoencoder, hinton1994autoencoder}. The aim of an auto-encoder is to learn a distributed representation (encoding) for a set of data. An auto-encoder is trained to encode the input $\x \in \R^n$ into some representation $\z \in \R^m$ so that the input can be reconstructed from that representation. It is thus a generative model. Hence the target output of the auto-encoder is the auto-encoder input itself. Auto-encoders may further be stacked to form a \gls{DBN}, while each layer can be trained separately \cite{bengio2007DBN, lecun2006stackedSparseAutoencoders}.
+An auto-encoder, auto-associator or Diabolo network is an artificial neural network composed of $n$ input and output units and $m$ hidden units. It is used for learning efficient codings \cite{bourlard1988autoencoder, hinton1994autoencoder}. The aim of an auto-encoder is to learn a distributed representation (encoding) for a set of data. An auto-encoder is trained to encode the input $\x \in \R^n$ into some representation $\z \in \R^m$ so that the input can be reconstructed from that representation. It is thus a generative model. Hence the target output of the auto-encoder is the auto-encoder input itself. Auto-encoders may further be stacked to form a \gls{DBN}, while each layer can be trained separately \cite{bengio2007DBN, ranzato2007stackedSparseAutoencoders}.
 % Stacked Auto-Encoders, not DBN
 
 {\color{red} Picture ?}
@@ -43,7 +43,7 @@ The hope is that the code $\z$ is a distributed representation that captures the
 It can typically be used for dimensionality reduction by learning a compressed ($m<n$) representation of the data. Another application is feature extraction before classification, for which we want an higher dimensionality ($m>n$) for easier separability. One serious issue with this approach is that if there is no other constraint, then an auto-encoder with $n$-dimensional input and an encoding of dimension $m \geq n$ could potentially just learn the identity function. There are different ways that an auto-encoder with more hidden units than inputs could be prevented from learning the identity, and still capture something useful about the input in its hidden representation $\z$.
 
 \paragraph{Sparse auto-encoders}
-Another strategy, based on the concept of sparse coding, is to add a sparsity constraint on the code. While an ordinary auto-encoder or an \gls{RBM} has an encoder part which computes $P(\z|\x)$ and a decoder part which computes $P(\x|\z)$, sparse coding systems only parametrize the decoder: the encoder is defined implicitly as the solution of an optimization. A middle ground between ordinary auto-encoders and sparse coding was proposed in \cite{lecun2006stackedSparseAutoencoders, ranzato2007stackedSparseAutoencoders} and applied to pattern recognition and machine vision tasks. They propose to let the codes $\z$ be free (as in sparse coding algorithms), but include a parametric encoder (as in an ordinary auto-encoder or \gls{RBM}) and a penalty for the difference between the free non-parametric codes $\z$ and the outputs of the parametric encoder. In this way, the optimized codes $\z$ try to satisfy two objectives: reconstruct well the input (like in sparse coding), while not being too far from the output of the encoder (which is stable by construction, because of the simple parametrization of the encoder). See \secref{encoder} for the definition of our encoder.
+Another strategy, based on the concept of sparse coding, is to add a sparsity constraint on the code. While an ordinary auto-encoder or an \gls{RBM} has an encoder part which computes $P(\z|\x)$ and a decoder part which computes $P(\x|\z)$, sparse coding systems only parametrize the decoder: the encoder is implicitly defined as the solution of an optimization. A middle ground between ordinary auto-encoders and sparse coding was proposed in \cite{lecun2006sparseAutoencoders, ranzato2007stackedSparseAutoencoders} and applied to pattern recognition and machine vision tasks. They propose to let the codes $\z$ be free (as in sparse coding algorithms), but include a parametric encoder (as in an ordinary auto-encoder or \gls{RBM}) and a penalty for the difference between the free non-parametric codes $\z$ and the outputs of the parametric encoder. In this way, the optimized codes $\z$ try to satisfy two objectives: reconstruct well the input (like in sparse coding), while not being too far from the output of the encoder (which is stable by construction, because of the simple parametrization of the encoder). See \secref{encoder} for the definition of our encoder.
 
 \paragraph{Denoising auto-encoders}
 One strategy is to add noise in the encoding. The denoising auto-encoder thus minimizes the error in reconstructing the input from a stochastically corrupted transformation of the input \cite{bengio2008denoisingAutoencoders}. Intuitively, a denoising auto-encoder does two things: try to encode the input (preserve the information about the input), and try to undo the effect of a corruption process stochastically applied to the input of the auto-encoder. This is essentially what a \gls{RBM} does \cite{hinton2002RBM}.
@@ -53,25 +53,34 @@ One strategy is to add noise in the encoding. The denoising auto-encoder thus mi
 
 
 \chapter{Model} \label{chap:model}
-% Construction: sparse coding, dictionary learning, encoder learning, manifold learning
+% Step by step construction: sparse coding, dictionary learning, encoder learning, manifold learning
 
-\section{Hypothesis} \label{sec:hypothesis}
+This chapter presents our structuring auto-encoder. \secref{hypothesizes} states the hypothesizes our proposed model is built on and \secref{sparse_coding} starts its construction with sparse coding as a base. \secref{dictionary_learning} introduces a trainable dictionary while \secref{manifold_learning} introduces a manifold learning term. Last but not least, \secref{encoder} introduces the trainable encoder. Finally, \secref{energy_formulation} reviews the whole energy-based formulation and brings some new insights.
 
-% To be generalized
+\section{Hypothesizes} \label{sec:hypothesizes}
 
-% (Known) hypothesis: patches of spectrogram are composed by a linear combination of atoms. These atoms form a dictionary. As we shall see, these atoms represent harmonies, harmonics, drums etc.
+Our model essentially relies on two hypothesizes about sparse coding and manifold learning which we will introduce from intuitions about the data. A third hypothesis, if verified, would allow the model to be much more efficient at extracting features after training.
 
-% (New) hypothesis: audio spectrograms lie on a low-dimensional manifold embedded in a high dimensional space.
+\paragraph{Sparse representation}
+We make the hypothesis that a set of sample signals drawn from the same distribution can be sparsely represented in some frame\footnote{A frame of a vector space is a set of vectors which may be linearly dependent. It is a generalization of a basis.}. Each signal should be approximately reconstructed by a linear combinations of a few atoms from a suitable dictionary. As we shall see, this dictionary may be adaptive and learned directly from the data. Sparsity has become a concept of great interest recently, not only in machine learning but also in statistics and signal processing, in particular with the work on compressed sensing \cite{candes2005CS, donoho2006CS}.
+% There is a huge body of literature on sparse coding and compressed sensing to support this hypothesis.
+% --> sparse coding
+
 % Structured: adding similarity information between inputs
 % Manifold: not all possible signals are reasonable / feasible
+\paragraph{Structured data}
+Our second hypothesis is that the dataset possesses some structure, i.e. related samples are close to each other (with respect to some metric). Given a large enough training set, we should be able to capture the structure of the data distribution; i.e. it should be very unlikely that a new valid sample (e.g. from the testing set) is far away from all seen examples. We further assume that most of the possible vectors, i.e. the vectors who exist in the  considered vector space, are not plausible, in the sense that they have a low probability of coming from the distribution which generated the training set. It suggests that the data lie on a lower dimensional manifold embedded in a high dimensional vector space. This manifold is however often unknown, which is the reason we want to learn it. \gls{SOM} \cite{kohonen1982SOM}, \gls{LLE} \cite{roweis2000LLE}, Laplacian Eigenmaps \cite{belkin2001laplacianEigenmaps} and Isomap \cite{tenenbaum2000isomap} are some popular techniques which learn manifolds for \gls{NLDR}.
+% --> manifold learning
+
+\paragraph{Encoder}
+We further make the assumption that we can train a simple encoder which would avoid the need of an optimization process to extract the features during testing, i.e. after the training phase. The encoder shall be much more efficient than the optimization process while not degrading too much the quality of the extracted features. Note that even if this hypothesis is not verified, the algorithm is still an auto-encoder with an implicit encoder.
 
 \section{Sparse coding} \label{sec:sparse_coding}
 % What it is, why it works, why it's good.
 % paper who demonstrates that L1 penalty leads to same solution as L0 while being convex, not combinatorial
 
 % Sparse coding.
-Sparsity has become a concept of great interest recently, not only in
-machine learning but also in statistics and signal processing, in particular with the work on compressed sensing \cite{candes2005CS, donoho2006CS}. The main idea behind sparse coding {\color{red} [ref]} is to express a signal $\x \in \R^n$ as a sparse linear combination of basis functions $\set{\d}{m}$, or atoms, from an overcomplete ($m>n$) dictionary $\D \in \R^{n \times m}$. The sparse code $\z^* \in \R^m$ is given by
+The main idea behind sparse coding {\color{red} [ref]} is to express a signal $\x \in \R^n$ as a sparse linear combination of basis functions $\set{\d}{m}$, or atoms, from an overcomplete ($m>n$) dictionary $\D \in \R^{n \times m}$. The sparse code $\z^* \in \R^m$ is given by
 \begin{equation}\label{eqn:sparsecoding}
 \z^* = \argmin{\z} \frac{\lambda_d}{2} \normT{\x - \D \z} + \lambda_z \normZ{\z}
 \end{equation}
@@ -84,7 +93,7 @@ Finding the sparse code $\z^*$ however requires a combinatorial search which is 
 \end{equation}
 where $\normO{\z} = \sum_{i=1}^{m} |z_i|$ is the $\ell_1$ norm of $\z$ (also called the Taxicab or Manhattan norm). As is now well understood \cite{candes2005CS, donoho2006CS}, the $\ell_1$ norm is a very good proxy for the $\ell_0$ norm and naturally induces sparse results. It can even be shown to recover exactly the true sparse code, i.e. the solution of \eqnref{eqn:sparsecoding} (if there is one), under mild conditions \cite{donoho2003OptSparse}. {\color{red}link with \gls{RIP}}. A number of algorithms have been proposed to efficiently solve this problem \cite{chen1998BasisPursuit, beck2009FISTA, ng2006EfficientSparse, li2009Coordinate} {\color{red} [others]}. They however still rely on computationally expensive iterative procedures which limit the system's scalability and real-time applications. While a direct method will always be preferred for feature extraction, iterative methods will still be necessary during training. Distributed computing with \gls{GPU} or via cloud computing will hopefully accelerate the process.
 
-\section{Dictionary learning}
+\section{Dictionary learning} \label{sec:dictionary_learning}
 
 % Why ?
 In classical sparse coding, the dictionary is composed of known functions such as sinusoids, gammatones, wavelets or Gabors; i.e. hand-crafted features. One may also want to learn a dictionary that is adaptive to the type of data at hand. This approach allows an even more compact representation and may lead to the discovery of previously unknown discriminative features.
@@ -109,7 +118,6 @@ Note that a dictionary can be either complete ($m=n$), undercomplete ($m<n$) or 
 Examples of complete dictionaries are bases, like the Fourier transform, which allow lossless transformations.
 Undercomplete dictionaries are good for dimensionality reductions as they exploit the statistical regularities present in the training set. As there is then no solution to $\x = \D\z$, an error measure like $\normT{\x - \D\z}$ should instead be minimized.
 Overcomplete dictionaries are good for classification as they allow for an easier (linear) separability enabled by the higher dimensional space. As there is then an infinite number of solutions to $\x = \D\z$, we shall introduce a regularization over $\z$. Optimization techniques are then used to find the optimal solution which minimizes the sum of the error measure and the regularization term, controlled by an hyper-parameter.
-% overcompleteness must be evaluated by considering the number of code units and the effective dimensionality of the input as given by PCA
 
 \paragraph{Regularization}
 The Tikhonov regularization, or ridge regression, is a commonly used prior of the form $\lambda \normT{\mathbf{\Gamma} \z}$ where $\mathbf{\Gamma}$ is the Tikhonov matrix. This matrix is often chosen to be a multiple of the identity matrix, i.e. $\mathbf{\Gamma} = \alpha \mathbf{I}$, giving preference to solutions with smaller norms. In a Bayesian context, this is equivalent to placing a zero-mean normally distributed prior on $\z$. In other cases, lowpass operators (e.g., a difference operator or a weighted Fourier operator) may be used to enforce smoothness if the underlying vector is believed to be mostly continuous. We will introduce a regularization of this kind to our model in \secref{manifold_learning}.
@@ -139,7 +147,7 @@ In mathematics, a manifold is a topological space that resembles Euclidean space
 	\caption[]{Examples of manifolds.\footnotemark (a) The circle, a 1D manifold, can be mapped by 4 charts. (b) The klein bottle is a 2D manifold that cannot be embedded in a 3D space without self-intersection.}
 	\label{fig:manifolds}
 \end{figure}
-\footnotetext{Images from Wikipedia.}
+\footnotetext{Figures from Wikipedia.}
 
 % Example close to our case.
 Let's imagine a single handwritten digit recognition system. The input is an image of $n \times n$ pixels which is represented by a vector $\x \in \R^{n \times n}$. However, not all vectors $\x \in \R^{n \times n}$ represent meaningful data. The vast majority indeed represents garbage. We may make the hypothesis that the set of plausible digits lies on a $d$-dimensional manifold where $d \leq n \times n$.
@@ -166,7 +174,7 @@ Graphs are generic data representation forms which are useful for describing the
 	\caption[]{A random positive graph signal on the vertices of the Petersen graph. The height of each blue bar represents the signal value at the vertex where the bar originates.\footnotemark}
 	\label{example_graph}
 \end{figure}
-\footnotetext{Image from \cite{pierre2013graph}.}
+\footnotetext{Figure from \cite{pierre2013graph}.}
 
 Weighted graphs are commonly used to represent similarities between data points in statistical learning problems for applications such as machine vision
 [2] and automatic text classification [3].
@@ -184,6 +192,10 @@ A graph $\G$
 
 \paragraph{Distance metric}
 % euclidean (small dim) and cosine (angular, high dim)
+% ref for why cosine is better in high dim
+% intuition: cosine is euclidean when data projected to sphere
+
+One of the reasons for the popularity of cosine similarity is that it is very efficient to evaluate, especially for sparse vectors, as only the non-zero dimensions need to be considered.
 
 \paragraph{Kernel}
 % Gaussian or polynomial
@@ -233,7 +245,7 @@ where $\e_k$ are the columns of $\E$. Again, the $\ell_1$ penalty $\normO{\E \X}
 
 While it is often a good idea to control the energy, the constraint on the columns of $\E$ is not needed in practice. While the columns of $\D$ are constrained to a norm smaller than one, they are in practice normalized because of the $\normO{\Z}$ objective. The energy of a vector transformed by $\D$ does thus not change, which means that the inferred sparse code $\z_i$ as the same energy as its corresponding vector $\x_i$. The encoder does then not need to add energy and will have a column norm smaller than one, even without the constraint. It has been verified in practice, see {\color{red} Fig}.
 
-\section{Energy-based formulation}
+\section{Energy-based formulation} \label{sec:energy_formulation}
 % energy-based model
 % Why energy ?
 

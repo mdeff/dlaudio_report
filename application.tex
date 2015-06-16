@@ -23,6 +23,8 @@ We think that this problem satisfies the hypothesizes we made in
 % Visual diagram: pre-processing, feature extraction, post-processing, classification, voting
 % Inspyred by [ref lecun] which uses sparse auto-encoders.
 
+The design of the system is inspired by \cite{lecun2011PSDaudio} which uses sparse auto-encoders for the same task.
+
 Similarly to us, the authors of \cite{lecun2011PSDaudio} used a layer of sparse auto-encoder to learn sparse representations of audio spectrograms. They introduced a technique called \gls{PSD} to quickly infer an approximation of the sparse codes \cite{lecun2010PSD}, which is effectively a sparse auto-encoder.
 
 The structuring auto-encoder developed in \partref{algorithm} generalizes their loss function as an energy function and introduces a structuring term. We also introduced a well-posed iterative scheme to solve the resulting non-convex optimization problem in \chapref{learning}.
@@ -78,6 +80,7 @@ The structuring auto-encoder developed in \partref{algorithm} generalizes their 
 \subsection{Approximate KNN search}
 % How FLANN works, what are the alternatives.
 % Techniques: KDtree, ball, local hashes (LHS)
+% cosine to euclidean
 
 \subsection{Optimization for space}
 % Optimization for space: avoid copy, modify in place, float32, store Z as scipy.sparse
@@ -101,6 +104,9 @@ The structuring auto-encoder developed in \partref{algorithm} generalizes their 
 \section{Learned features}
 % Show some atoms: harmonics, chords, harmonies, drums.
 % Probably not on full CQT, should be on octaves.
+%Via music theory, we know that music is constructed via some building blocks, e.g.
+
+Although we have not observed meaningful atoms (yet), \cite{lecun2010PSD} showed that when dictionaries where trained on individual octaves, they discovered harmonics, chords and harmonies without any prior about music theory.
 
 \section{Descriptive feature vectors}
 % Show aggregated feature vectors for some genres.
@@ -114,10 +120,17 @@ The structuring auto-encoder developed in \partref{algorithm} generalizes their 
 % Classification: C, Nvectors
 % Pre-processing: na=1024, ns=96
 
+Overcompleteness, defined by the hyper-parameter $m$, must be evaluated by considering the number of code units and the effective dimensionality of the input as given by \gls{PCA}.
+
 \section{Classification accuracy}
 % Measured via 10-fold cross-validation
 % How classification is improved by feature learning, introducing the encoder / graph.
 % Comparison with other techniques.
 
+\section{Robustness to noisy data}
+% Final experiement: baseline, graph-less, graph vs noise level
+
 \section{Discussion}
 % Is the model appropriate for the problem ?
+
+While higher classification accuracies are probably achievable by fine-tuning the hyper-parameters and introducing further tricks; e.g. by applying a \gls{LCN} to the \gls{CQT} spectrograms or working on individual octaves, two techniques used by \cite{lecun2011PSDaudio}; we made the point that our model is useful and that we shall continue to research on it. We may even further improve the performance of our model by creating a better graph, i.e. a graph more adapted to the problem at hand, by fine-tuning the hyper-parameters.

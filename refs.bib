@@ -15,125 +15,7 @@
 
 
 
-%%%%  Music information retrieval  %%%%
 
-@inproceedings{lecun2011PSDaudio,
-	title={Unsupervised learning of sparse features for scalable audio classification.},
-	author={Henaff, Mikael and Jarrett, Kevin and Kavukcuoglu, Koray and LeCun, Yann},
-	booktitle={ISMIR},
-	volume={11},
-	pages={276},
-	year={2011}
-}
-
-@incollection{sturm2014Survey,
-	title={A survey of evaluation in music genre recognition},
-	author={Sturm, Bob L},
-	booktitle={Adaptive Multimedia Retrieval: Semantics, Context, and Adaptation},
-	pages={29--66},
-	year={2014},
-	publisher={Springer}
-}
-
-%%%%  Sparse coding  %%%%
-
-@article{mallat1993MatchingPursuit,
-	title={Matching pursuits with time-frequency dictionaries},
-	author={Mallat, St{\'e}phane G and Zhang, Zhifeng},
-	journal={Signal Processing, IEEE Transactions on},
-	volume={41},
-	number={12},
-	pages={3397--3415},
-	year={1993},
-	publisher={IEEE}
-}
-
-@article{chen1998BasisPursuit,
-	title={Atomic decomposition by basis pursuit},
-	author={Chen, Scott Shaobing and Donoho, David L and Saunders, Michael A},
-	journal={SIAM journal on scientific computing},
-	volume={20},
-	number={1},
-	pages={33--61},
-	year={1998},
-	publisher={SIAM}
-}
-
-@article{donoho2003OptSparse,
-	title={Optimally sparse representation in general (nonorthogonal) dictionaries via l1 minimization},
-	author={Donoho, David L and Elad, Michael},
-	journal={Proceedings of the National Academy of Sciences},
-	volume={100},
-	number={5},
-	pages={2197--2202},
-	year={2003},
-	publisher={National Acad Sciences}
-}
-
-@inproceedings{ng2006EfficientSparse,
-	title={Efficient sparse coding algorithms},
-	author={Lee, Honglak and Battle, Alexis and Raina, Rajat and Ng, Andrew Y},
-	booktitle={Advances in neural information processing systems},
-	pages={801--808},
-	year={2006}
-}
-
-%%%%  Compressed sensing  %%%%
-
-@article{candes2005CS,
-	title={Decoding by linear programming},
-	author={Candes, Emmanuel J and Tao, Terence},
-	journal={Information Theory, IEEE Transactions on},
-	volume={51},
-	number={12},
-	pages={4203--4215},
-	year={2005},
-	publisher={IEEE}
-}
-
-@article{donoho2006CS,
-	title={Compressed sensing},
-	author={Donoho, David L},
-	journal={Information Theory, IEEE Transactions on},
-	volume={52},
-	number={4},
-	pages={1289--1306},
-	year={2006},
-	publisher={IEEE}
-}
-
-%%%%  Regularization  %%%%
-
-@article{tibshirani1996Lasso,
-	title={Regression shrinkage and selection via the lasso},
-	author={Tibshirani, Robert},
-	journal={Journal of the Royal Statistical Society. Series B (Methodological)},
-	pages={267--288},
-	year={1996},
-	publisher={JSTOR}
-}
-
-@article{park2008BayesianLasso,
-	title={The bayesian lasso},
-	author={Park, Trevor and Casella, George},
-	journal={Journal of the American Statistical Association},
-	volume={103},
-	number={482},
-	pages={681--686},
-	year={2008},
-	publisher={Taylor \& Francis}
-}
-
-@article{zou2005ElasticNet,
-	title={Regularization and variable selection via the elastic net},
-	author={Zou, Hui and Hastie, Trevor},
-	journal={Journal of the Royal Statistical Society: Series B (Statistical Methodology)},
-	volume={67},
-	number={2},
-	pages={301--320},
-	year={2005},
-	publisher={Wiley Online Library}
-}
 
 %%%%  Neural nets  %%%%
 
@@ -188,17 +70,18 @@
 	publisher={MORGAN KAUFMANN PUBLISHERS}
 }
 
-@article{bengio2007DBN,
-	title={Greedy layer-wise training of deep networks},
-	author={Bengio, Yoshua and Lamblin, Pascal and Popovici, Dan and Larochelle, Hugo and others},
-	journal={Advances in neural information processing systems},
-	volume={19},
-	pages={153},
-	year={2007},
-	publisher={MIT; 1998}
+@article{japkowicz2000autoencoderPCA,
+	title={Nonlinear autoassociation is not equivalent to PCA},
+	author={Japkowicz, Nathalie and Hanson, Stephen Jose and Gluck, Mark and others},
+	journal={Neural computation},
+	volume={12},
+	number={3},
+	pages={531--545},
+	year={2000},
+	publisher={MIT Press}
 }
 
-@inproceedings{lecun2006stackedSparseAutoencoders,
+@inproceedings{lecun2006sparseAutoencoders,
 	title={Efficient learning of sparse representations with an energy-based model},
 	author={Poultney, Christopher and Chopra, Sumit and Cun, Yann L and others},
 	booktitle={Advances in neural information processing systems},
@@ -213,17 +96,6 @@
 	pages={1--8},
 	year={2007},
 	organization={IEEE}
-}
-
-@article{japkowicz2000autoencoderPCA,
-	title={Nonlinear autoassociation is not equivalent to PCA},
-	author={Japkowicz, Nathalie and Hanson, Stephen Jose and Gluck, Mark and others},
-	journal={Neural computation},
-	volume={12},
-	number={3},
-	pages={531--545},
-	year={2000},
-	publisher={MIT Press}
 }
 
 @inproceedings{bengio2008denoisingAutoencoders,
@@ -246,47 +118,114 @@
 	publisher={MIT Press}
 }
 
-%%%%  Convex optimization  %%%%
-
-@article{li2009Coordinate,
-	title={Coordinate descent optimization for l1 minimization with application to compressed sensing; a greedy algorithm},
-	author={Li, Yingying and Osher, Stanley},
-	journal={Inverse Problems and Imaging},
-	volume={3},
-	number={3},
-	pages={487--503},
-	year={2009}
+@article{bengio2007DBN,
+	title={Greedy layer-wise training of deep networks},
+	author={Bengio, Yoshua and Lamblin, Pascal and Popovici, Dan and Larochelle, Hugo and others},
+	journal={Advances in neural information processing systems},
+	volume={19},
+	pages={153},
+	year={2007},
+	publisher={MIT; 1998}
 }
 
-@article{beck2009FISTA,
-	title={A fast iterative shrinkage-thresholding algorithm for linear inverse problems},
-	author={Beck, Amir and Teboulle, Marc},
-	journal={SIAM Journal on Imaging Sciences},
-	volume={2},
+%%%%  Compressed sensing  %%%%
+
+@article{candes2005CS,
+	title={Decoding by linear programming},
+	author={Candes, Emmanuel J and Tao, Terence},
+	journal={Information Theory, IEEE Transactions on},
+	volume={51},
+	number={12},
+	pages={4203--4215},
+	year={2005},
+	publisher={IEEE}
+}
+
+@article{donoho2006CS,
+	title={Compressed sensing},
+	author={Donoho, David L},
+	journal={Information Theory, IEEE Transactions on},
+	volume={52},
+	number={4},
+	pages={1289--1306},
+	year={2006},
+	publisher={IEEE}
+}
+
+%%%%  Sparse coding  %%%%
+
+@article{mallat1993MatchingPursuit,
+	title={Matching pursuits with time-frequency dictionaries},
+	author={Mallat, St{\'e}phane G and Zhang, Zhifeng},
+	journal={Signal Processing, IEEE Transactions on},
+	volume={41},
+	number={12},
+	pages={3397--3415},
+	year={1993},
+	publisher={IEEE}
+}
+
+@article{chen1998BasisPursuit,
+	title={Atomic decomposition by basis pursuit},
+	author={Chen, Scott Shaobing and Donoho, David L and Saunders, Michael A},
+	journal={SIAM journal on scientific computing},
+	volume={20},
 	number={1},
-	pages={183--202},
-	year={2009},
+	pages={33--61},
+	year={1998},
 	publisher={SIAM}
 }
 
-@article{candes2013AdaptiveRestart,
-	title={Adaptive restart for accelerated gradient schemes},
-	author={O'Donoghue, Brendan and Candes, Emmanuel},
-	journal={Foundations of computational mathematics},
-	pages={1--18},
-	year={2013},
-	publisher={Springer}
+@article{donoho2003OptSparse,
+	title={Optimally sparse representation in general (nonorthogonal) dictionaries via l1 minimization},
+	author={Donoho, David L and Elad, Michael},
+	journal={Proceedings of the National Academy of Sciences},
+	volume={100},
+	number={5},
+	pages={2197--2202},
+	year={2003},
+	publisher={National Acad Sciences}
 }
 
-@article{chambolle2011PrimalDual,
-	title={A first-order primal-dual algorithm for convex problems with applications to imaging},
-	author={Chambolle, Antonin and Pock, Thomas},
-	journal={Journal of Mathematical Imaging and Vision},
-	volume={40},
-	number={1},
-	pages={120--145},
-	year={2011},
-	publisher={Springer}
+@inproceedings{ng2006EfficientSparse,
+	title={Efficient sparse coding algorithms},
+	author={Lee, Honglak and Battle, Alexis and Raina, Rajat and Ng, Andrew Y},
+	booktitle={Advances in neural information processing systems},
+	pages={801--808},
+	year={2006}
+}
+
+%%%%  Regularization  %%%%
+
+@article{tibshirani1996Lasso,
+	title={Regression shrinkage and selection via the lasso},
+	author={Tibshirani, Robert},
+	journal={Journal of the Royal Statistical Society. Series B (Methodological)},
+	pages={267--288},
+	year={1996},
+	publisher={JSTOR}
+}
+
+@article{park2008BayesianLasso,
+	title={The bayesian lasso},
+	author={Park, Trevor and Casella, George},
+	journal={Journal of the American Statistical Association},
+	volume={103},
+	number={482},
+	pages={681--686},
+	year={2008},
+	publisher={Taylor \& Francis}
+}
+
+@article{zou2005ElasticNet,
+	title={Regularization and variable selection via the elastic net},
+	author={Zou, Hui and Hastie, Trevor},
+	journal={Journal of the Royal Statistical Society: Series B (Statistical Methodology)},
+	volume={67},
+	number={2},
+	pages={301--320},
+	year={2005},
+	publisher={Wiley Online Library}
 }
 
 %%%%  Brain  %%%%
@@ -367,6 +306,50 @@
 	year={2013}
 }
 
+%%%%  Non-linear dimensionality reduction  %%%%
+
+@article{kohonen1982SOM,
+	title={Self-organized formation of topologically correct feature maps},
+	author={Kohonen, Teuvo},
+	journal={Biological cybernetics},
+	volume={43},
+	number={1},
+	pages={59--69},
+	year={1982},
+	publisher={Springer}
+}
+
+@article{roweis2000LLE,
+	title={Nonlinear dimensionality reduction by locally linear embedding},
+	author={Roweis, Sam T and Saul, Lawrence K},
+	journal={Science},
+	volume={290},
+	number={5500},
+	pages={2323--2326},
+	year={2000},
+	publisher={American Association for the Advancement of Science}
+}
+
+@inproceedings{belkin2001laplacianEigenmaps,
+	title={Laplacian Eigenmaps and Spectral Techniques for Embedding and Clustering.},
+	author={Belkin, Mikhail and Niyogi, Partha},
+	booktitle={NIPS},
+	volume={14},
+	pages={585--591},
+	year={2001}
+}
+
+@article{tenenbaum2000isomap,
+	title={A global geometric framework for nonlinear dimensionality reduction},
+	author={Tenenbaum, Joshua B and De Silva, Vin and Langford, John C},
+	journal={Science},
+	volume={290},
+	number={5500},
+	pages={2319--2323},
+	year={2000},
+	publisher={American Association for the Advancement of Science}
+}
+
 %%%%  Structured sparse coding  %%%%
 
 % Kowalski:
@@ -427,6 +410,90 @@
 	publisher={IEEE}
 }
 
+%%%%  Graph  %%%%
+
+@article{pierre2013graph,
+	title={The emerging field of signal processing on graphs: Extending high-dimensional data analysis to networks and other irregular domains},
+	author={Shuman, David and Narang, Sunil K and Frossard, Pascal and Ortega, Antonio and Vandergheynst, Pierre and others},
+	journal={Signal Processing Magazine, IEEE},
+	volume={30},
+	number={3},
+	pages={83--98},
+	year={2013},
+	publisher={IEEE}
+}
+
+@inproceedings{zelnik2004scale,
+	title={Self-tuning spectral clustering},
+	author={Zelnik-Manor, Lihi and Perona, Pietro},
+	booktitle={Advances in neural information processing systems},
+	pages={1601--1608},
+	year={2004}
+}
+
+%%%%  Convex optimization  %%%%
+
+@article{li2009Coordinate,
+	title={Coordinate descent optimization for l1 minimization with application to compressed sensing; a greedy algorithm},
+	author={Li, Yingying and Osher, Stanley},
+	journal={Inverse Problems and Imaging},
+	volume={3},
+	number={3},
+	pages={487--503},
+	year={2009}
+}
+
+@article{beck2009FISTA,
+	title={A fast iterative shrinkage-thresholding algorithm for linear inverse problems},
+	author={Beck, Amir and Teboulle, Marc},
+	journal={SIAM Journal on Imaging Sciences},
+	volume={2},
+	number={1},
+	pages={183--202},
+	year={2009},
+	publisher={SIAM}
+}
+
+@article{candes2013AdaptiveRestart,
+	title={Adaptive restart for accelerated gradient schemes},
+	author={O'Donoghue, Brendan and Candes, Emmanuel},
+	journal={Foundations of computational mathematics},
+	pages={1--18},
+	year={2013},
+	publisher={Springer}
+}
+
+@article{chambolle2011PrimalDual,
+	title={A first-order primal-dual algorithm for convex problems with applications to imaging},
+	author={Chambolle, Antonin and Pock, Thomas},
+	journal={Journal of Mathematical Imaging and Vision},
+	volume={40},
+	number={1},
+	pages={120--145},
+	year={2011},
+	publisher={Springer}
+}
+
+%%%%  Music information retrieval  %%%%
+
+@inproceedings{lecun2011PSDaudio,
+	title={Unsupervised learning of sparse features for scalable audio classification.},
+	author={Henaff, Mikael and Jarrett, Kevin and Kavukcuoglu, Koray and LeCun, Yann},
+	booktitle={ISMIR},
+	volume={11},
+	pages={276},
+	year={2011}
+}
+
+@incollection{sturm2014Survey,
+	title={A survey of evaluation in music genre recognition},
+	author={Sturm, Bob L},
+	booktitle={Adaptive Multimedia Retrieval: Semantics, Context, and Adaptation},
+	pages={29--66},
+	year={2014},
+	publisher={Springer}
+}
+
 %%%%  Preprocessing  %%%%
 
 @article{young1939ScientificPitch,
@@ -485,27 +552,6 @@
 	pages={e27},
 	year={2008},
 	publisher={Public Library of Science}
-}
-
-%%%%  Graph  %%%%
-
-@article{pierre2013graph,
-	title={The emerging field of signal processing on graphs: Extending high-dimensional data analysis to networks and other irregular domains},
-	author={Shuman, David and Narang, Sunil K and Frossard, Pascal and Ortega, Antonio and Vandergheynst, Pierre and others},
-	journal={Signal Processing Magazine, IEEE},
-	volume={30},
-	number={3},
-	pages={83--98},
-	year={2013},
-	publisher={IEEE}
-}
-
-@inproceedings{zelnik2004scale,
-	title={Self-tuning spectral clustering},
-	author={Zelnik-Manor, Lihi and Perona, Pietro},
-	booktitle={Advances in neural information processing systems},
-	pages={1601--1608},
-	year={2004}
 }
 
 %%%%  Classification  %%%%
