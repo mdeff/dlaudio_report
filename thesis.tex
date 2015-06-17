@@ -10,7 +10,7 @@
 %\usepackage{parskip} \setlength{\parindent}{0em} \setlength{\parskip}{1em}
 \usepackage[colorlinks=true,allcolors=blue]{hyperref} \hypersetup{
 	pdfauthor={Michaël Defferrard},
-	pdftitle={Structuring Auto-Encoder},
+	pdftitle={Structured Auto-Encoder},
 	pdfsubject={Master Thesis in Information Technologies}
 }
 
@@ -95,8 +95,8 @@
 %\newcommand{\forallx}[2]{\forall #1 \in \{1,\ldots,#2\}}
 \newcommand{\forallx}[2]{#1 = 1, \ldots, #2}
 %\newcommand{\forallx}[2]{\|#1_#2\|_2 \leq 1 \text{ for } #2 = 1,\ldots,#3}
-\newcommand{\cstd}{\cst{\d}{i}, \forallx{i}{m}}
-\newcommand{\cste}{\cst{\e}{k}, \forallx{k}{n}}
+\newcommand{\cstd}{\cst{\d}{i}, \ \forallx{i}{m}}
+\newcommand{\cste}{\cst{\e}{k}, \ \forallx{k}{n}}
 \newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
 
 \newcommand*{\blankpage}{
@@ -138,15 +138,13 @@
 		\vspace{0.8cm}
 		
 		\HRule
-		\vspace{0.7cm}
-		\textsc{\Large Introducing the}\\
-		\vspace{0.7cm}
-		\textsc{\Huge Structuring Auto-Encoder}\\
+		\vspace{0.9cm}
+		\textsc{\Huge Structured Auto-Encoder}\\
 		\vspace{0.5cm}
-		\textsc{\Large with an application to}\\
+		\textsc{\Large with application to}\\
 		\vspace{0.2cm}
 		\textsc{\Large Music Genre Recognition}\\
-		\vspace{0.4cm}
+		\vspace{0.6cm}
 		\HRule
 		\vspace{1.3cm}
 		
@@ -166,14 +164,11 @@
 			\end{flushright}
 		\end{minipage}
 		
-	\end{center}
-	
-	\vspace{1.0cm}
-	{\large Conducted at the EPFL LTS2 laboratory.}
-	\vspace{1.0cm}
-
-	\begin{center}
-		{\large June 19, 2015}
+		\vspace{1.5cm}
+		\large EPFL LTS2 Laboratory\\
+		\vspace{0.8cm}
+		\large June 19, 2015
+		
 	\end{center}
 	
 \end{titlepage}
@@ -191,7 +186,7 @@
 \cleardoublepage
 \renewcommand{\abstractname}{Acknowledgements}
 \begin{abstract}
-	Xavier for day-to-day supervision. Many inputs, intuitions and references. Discussion of the results and proof reading of the thesis.
+	Xavier for day-to-day supervision. Many inputs, intuitions and references. Discussion of the results and proof reading of the thesis. Invaluable comments on this report. % picky
 	
 	Johan for intuitions at the start of the project, advices and proof reading of the thesis.
 	
@@ -229,7 +224,7 @@
 % Learning Distributed Representations: Bengio learning deep ai
 
 % What will be presented. Design goal.
-This thesis introduces a new auto-encoder variant which we call a \textit{structuring auto-encoder}; because it keeps the structure of the data while transforming it in another representation. As we shall see, it has the properties of an hybrid between a sparse auto-encoder \cite{lecun2006sparseAutoencoders, ranzato2007stackedSparseAutoencoders} and a denoising auto-encoder \cite{bengio2008denoisingAutoencoders}. The primary goal of the proposed algorithm is unsupervised representation learning toward the goal of feature extractions, while being robust to noisy data and fast at feature extraction (after the training phase). The quality of the extracted features shall be evaluated through a classification task.
+This thesis introduces the \textit{structured auto-encoder}, an auto-encoder variant which keeps the structure of the data while transforming it in another representation. As we shall see, it has the properties of an hybrid between a sparse auto-encoder \cite{lecun2006sparseAutoencoders, ranzato2007stackedSparseAutoencoders} and a denoising auto-encoder \cite{bengio2008denoisingAutoencoders}. The primary goal of the proposed algorithm is unsupervised representation learning toward the goal of feature extractions, while being robust to noisy data and fast at feature extraction (after the training phase). The quality of the extracted features shall be evaluated through a classification task.
 
 % Plan.
 This thesis is divided in two parts. Through \partref{algorithm}, the proposed model is introduced by a motivation in \chapref{motivation} and constructed step by step in \chapref{model}. \chapref{learning} describes how it learns while \chapref{related_work} compares it to existing models. As a testbed of our algorithm's performance, an application to \gls{MGR} is proposed in \partref{application} with a presentation of the problem in \chapref{problem}, our proposed system in \chapref{system} along with some implementation details in \chapref{implementation}. \chapref{results} is dedicated to the presentation of the experimental results.
@@ -255,14 +250,16 @@ While the project was ongoing, I continuously published my thoughts, observation
 
 \section*{Future work}
 \addcontentsline{toc}{section}{Future work}
+% Split future work on the algorithm and on the application ?
+% Only about algorithm ?
 
-\paragraph{Encoder}
+\paragraph{Encoder.}
 % Verify the hypothesis
 
-\paragraph{TV norm}
+\paragraph{TV norm.}
 % TV norm on the graph instead of Dirichlet energy
 
-\paragraph{Distributed implementation}
+\paragraph{Distributed implementation.}
 % Details ?
 % Train chunks of D / Z via independant threads.
 % Directly in the PyUNLocBoX ?
@@ -270,7 +267,7 @@ While the project was ongoing, I continuously published my thoughts, observation
 % Why ATLAS does not do it by default ? OpenBLAS does it.
 % Move to GPU.
 
-\paragraph{Multiple layers}
+\paragraph{Multiple layers.}
 % Multiple layers of auto-encoders
 % In spite of deep learning methods
 % Reference to DBN: stacks of RBM, Stacked auto-encoders.
@@ -286,11 +283,11 @@ While the project was ongoing, I continuously published my thoughts, observation
 % Objective function is highly non-convex.
 % popularized by CNN.
 
-%\paragraph{End-to-end learning}
+%\paragraph{End-to-end learning.}
 % For the application, not the algorithm.
 % Learn features right from raw audio. If spectrograms are good features, we should retrieve them.
 
-%\paragraph{Domain knowledge}
+%\paragraph{Domain knowledge.}
 % For the application, not the algorithm.
 % Incorporate some domain knowledge about the dictionary via priors. Then it's not supervised anymore.
 % Priors on the dictionary who are not necessarily domain specific, i.e. are general enough to apply to other kind of data.

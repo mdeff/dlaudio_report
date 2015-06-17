@@ -42,10 +42,10 @@ The hope is that the code $\z$ is a distributed representation that captures the
 
 It can typically be used for dimensionality reduction by learning a compressed ($m<n$) representation of the data. Another application is feature extraction before classification, for which we want an higher dimensionality ($m>n$) for easier separability. One serious issue with this approach is that if there is no other constraint, then an auto-encoder with $n$-dimensional input and an encoding of dimension $m \geq n$ could potentially just learn the identity function. There are different ways that an auto-encoder with more hidden units than inputs could be prevented from learning the identity, and still capture something useful about the input in its hidden representation $\z$.
 
-\paragraph{Sparse auto-encoders}
+\paragraph{Sparse auto-encoders.}
 Another strategy, based on the concept of sparse coding, is to add a sparsity constraint on the code. While an ordinary auto-encoder or an \gls{RBM} has an encoder part which computes $P(\z|\x)$ and a decoder part which computes $P(\x|\z)$, sparse coding systems only parametrize the decoder: the encoder is implicitly defined as the solution of an optimization. A middle ground between ordinary auto-encoders and sparse coding was proposed in \cite{lecun2006sparseAutoencoders, ranzato2007stackedSparseAutoencoders} and applied to pattern recognition and machine vision tasks. They propose to let the codes $\z$ be free (as in sparse coding algorithms), but include a parametric encoder (as in an ordinary auto-encoder or \gls{RBM}) and a penalty for the difference between the free non-parametric codes $\z$ and the outputs of the parametric encoder. In this way, the optimized codes $\z$ try to satisfy two objectives: reconstruct well the input (like in sparse coding), while not being too far from the output of the encoder (which is stable by construction, because of the simple parametrization of the encoder). See \secref{encoder} for the definition of our encoder.
 
-\paragraph{Denoising auto-encoders}
+\paragraph{Denoising auto-encoders.}
 One strategy is to add noise in the encoding. The denoising auto-encoder thus minimizes the error in reconstructing the input from a stochastically corrupted transformation of the input \cite{bengio2008denoisingAutoencoders}. Intuitively, a denoising auto-encoder does two things: try to encode the input (preserve the information about the input), and try to undo the effect of a corruption process stochastically applied to the input of the auto-encoder. This is essentially what a \gls{RBM} does \cite{hinton2002RBM}.
 
 
@@ -53,37 +53,41 @@ One strategy is to add noise in the encoding. The denoising auto-encoder thus mi
 
 
 \chapter{Model} \label{chap:model}
-% Step by step construction: sparse coding, dictionary learning, encoder learning, manifold learning
+% Step by step construction: sparse coding, dictionary learning, encoder learning, manifold learning.
+% Xavier: maybe not useful as it is just the enumeration of the sub-titles of chapter 2 --> give instead a global motivation.
 
-This chapter presents our structuring auto-encoder. \secref{hypothesizes} states the hypothesizes our proposed model is built on and \secref{linear_regression} reviews the basics of linear regression, the foundation of our model. \secref{sparse_coding} starts to build up with sparse coding. \secref{dictionary_learning} introduces a trainable dictionary while \secref{manifold_learning} introduces manifold learning. Last but not least, \secref{encoder} introduces the trainable encoder. Finally, \secref{energy_formulation} reviews the whole energy-based formulation and brings some new insights.
+This chapter presents the proposed structured auto-encoder. \secref{assumptions} states the assumptions of the model. \secref{linear_regression} reviews the basics of linear regression, the foundation of our model. \secref{sparse_coding} introduces sparse coding, \secref{dictionary_learning} introduces a trainable dictionary and \secref{manifold_learning} introduces manifold learning. Last but not least, \secref{encoder} introduces the trainable encoder. Finally, \secref{energy_formulation} reviews the whole energy-based formulation and brings some new insights.
 
-\section{Hypothesizes} \label{sec:hypothesizes}
+\section{Assumptions} \label{sec:assumptions}
+% Xavier: needs to be improved.
 
-Our model essentially relies on two hypothesizes about sparse coding and manifold learning which we will introduce from intuitions about the data. A third hypothesis, if verified, would allow the model to be much more efficient at extracting features after training.
-
-\paragraph{Sparse representation}
+\paragraph{Sparse representation.}
 We make the hypothesis that a set of sample signals drawn from the same distribution can be sparsely represented in some frame\footnote{A frame of a vector space is a set of vectors which may be linearly dependent. It is a generalization of a basis.}. Each signal should be approximately reconstructed by a linear combinations of a few atoms from a suitable dictionary. As we shall see, this dictionary may be adaptive and learned directly from the data. Sparsity has become a concept of great interest recently, not only in machine learning but also in statistics and signal processing, in particular with the work on \gls{CS} \cite{candes2005CS, donoho2006CS}.
 % There is a huge body of literature on sparse coding and compressed sensing to support this hypothesis.
-% --> sparse coding
+% --> sparse coding.
 
-% Structured: adding similarity information between inputs
-% Manifold: not all possible signals are reasonable / feasible
-\paragraph{Structured data}
-Our second hypothesis is that the dataset possesses some structure, i.e. related samples are close to each other (with respect to some metric). Given a large enough training set, we should be able to capture the structure of the data distribution; i.e. it should be very unlikely that a new valid sample (e.g. from the testing set) is far away from all seen examples. We further assume that most of the possible vectors, i.e. the vectors who exist in the  considered vector space, are not plausible, in the sense that they have a low probability of coming from the distribution which generated the training set. It suggests that the data lie on a lower dimensional manifold embedded in a high dimensional vector space. This manifold is however often unknown, which is the reason we want to learn it. \gls{SOM} \cite{kohonen1982SOM}, \gls{LLE} \cite{roweis2000LLE}, Laplacian Eigenmaps \cite{belkin2001laplacianEigenmaps} and Isomap \cite{tenenbaum2000isomap} are some popular techniques which learn manifolds for \gls{NLDR}. An auto-encoder used for dimensionality reduction, i.e. with fewer hidden units than inputs, learns a map from high to low-dimensional space too. It is forced to learn to optimally encode the vectors into a small number of dimensions and then decode them back into the original space \cite{bourlard1988autoencoder}.
-% --> manifold learning
+% Structured: adding similarity information between inputs.
+% Manifold: not all possible signals are reasonable / feasible.
+% Xavier: a definition of auto-encoder should be given before in the report.
+% We further assume that the subspace spanned by the data is much smaller than the Euclidean space.
+\paragraph{Structured data.}
+Our second hypothesis is that the dataset holds some structure, in the sense that related samples are close to each other (with respect to some metric). Given a large enough training set, the structure of the data distribution should be able to be captured; i.e. a new valid sample (e.g. from the testing set) should be close to the seen examples. It suggests that the data lie on a lower dimensional manifold embedded in a high dimensional vector space. This manifold is however often unknown and must be learned. \gls{SOM} \cite{kohonen1982SOM}, \gls{LLE} \cite{roweis2000LLE}, Laplacian Eigenmaps \cite{belkin2001laplacianEigenmaps} and Isomap \cite{tenenbaum2000isomap} are some popular techniques which learn manifolds in a \gls{NLDR} framework. Auto-encoders used for dimensionality reduction are able to learn a map from high to low-dimensional space with fewer hidden units than inputs. They are trained to learn to optimally encode the input vectors into a small number of dimensions and decode them back into the original space with minimal error \cite{bourlard1988autoencoder}.
+% --> manifold learning.
 
-\paragraph{Encoder}
-We further make the assumption that we can train a simple encoder which would avoid the need of an optimization process to extract the features during testing, i.e. after the training phase. The encoder shall be much more efficient than the optimization process while not degrading too much the quality of the extracted features. Note that even if this hypothesis is not verified, the algorithm is still an auto-encoder with an implicit encoder.
+\paragraph{Encoder.}
+We further make the assumption that a simple encoder can be trained to avoid the need of an optimization process that extracts the features during testing, i.e. after the training phase. The encoder shall be more efficient than the optimization process while not degrading too much the quality of the extracted features. Note that even if this hypothesis is not verified, the algorithm is still an auto-encoder, although with an implicit encoder.
+% --> auto-encoder.
 
 \section{Linear regression} \label{sec:linear_regression}
 
-Given a signal $\x \in \Xx \subset \R^n$ and a frame $\D \in \R^{n \times m}$, we want to find a representation $\z \in \R^m$ which satisfies the linear regression model
+\paragraph{Model.}
+Given a set $\set{\x}{N} \in \R^n$ of $N$ signals, the subspace $\Xx = \spanning \{\x_i\}_{i=1}^N \subset \R^n$ is defined as the subspace spanned by the data. Then, given a signal $\x \in \Xx$ and a frame $\D \in \R^{n \times m}$, we want to find a representation $\z \in \R^m$ which satisfies the linear regression model
 \begin{equation} \label{eqn:linear_regression}
-	\x = \D \z + \eps
+	\x = \D \z + \eps,
 \end{equation}
-where $\mathbf{\epsilon} \in \R^n$ is the reconstruction error, which is unavoidable as long as the frame $\D$ is not complete on $\Xx$.
+where $\mathbf{\epsilon} \in \R^n$ is the reconstruction error, which is not negligible as long as the frame $\D$ is not complete on $\Xx$.
 
-\paragraph{Capacity} The hyper-parameter $m$ defines the learning capacity of the auto-encoder. A capacity $m < n$ is good for dimensionality reduction as it exploits the statistical regularities present in the training set while being more compact. A capacity $m > n$ is good for classification as it allows for an easier (linear) separability enabled by the higher dimensional space.
+\paragraph{Capacity.} The hyper-parameter $m$ defines the learning capacity of the auto-encoder. A capacity $m < n$ is good for dimensionality reduction as it exploits the statistical regularities present in the training set while being more compact. A capacity $m > n$ is good for classification as it allows for an easier (linear) separability enabled by the higher dimensional space.
 
 \begin{figure}[ht]
 	\centering
@@ -93,7 +97,7 @@ where $\mathbf{\epsilon} \in \R^n$ is the reconstruction error, which is unavoid
 \end{figure}
 \footnotetext{Figure from Wikipedia.}
 
-\paragraph{Completeness}
+\paragraph{Completeness.}
 A frame is complete if it can represent any vector $\x \in \Xx$. It is overcomplete if the removal of a vector from the frame results in a complete frame. A set of $n < m$ linearly independent vectors would indeed be overcomplete on the whole space $\R^n$ and a set of $m=n$ linearly independent vectors, like the Fourier transform, would form a basis\footnote{A basis is a set of linearly independent vectors who span the entire space, i.e. it is a linearly independent spanning set.} of $\R^n$, which is obviously complete.
 
 % Complete.
@@ -103,73 +107,87 @@ A complete frame which is not overcomplete allows bidirectional lossless transfo
 If the frame is not complete, there exist no solution to \eqnref{linear_regression} with $\eps=0$ as the system is overdetermined. An error measure, like \eqnref{least_square} for the \gls{OLS} method, should instead be minimized.
 
 % Overcomplete.
-In different research, such as signal processing and function approximation, overcomplete representations have been advocated because they have greater robustness in the presence of noise, can be sparser, and can have greater flexibility in matching structure in the data. However, because of this redundancy, a signal can have multiple expressions under an overcomplete frame \cite{lewicki2000overcompleteRepresentation}. See \figref{overcomplete_frame} for an example of the flexibility of an overcomplete frame to represent a dataset. As there is then an infinite number of solutions to \eqnref{linear_regression} with $\eps=0$, i.e. the problem is ill-posed, we shall introduce a regularization over $\z$. Optimization techniques are then used to find the optimal solution which minimizes the sum of the error measure and the regularization term, controlled by an hyper-parameter.
+In different research, such as signal processing and function approximation, overcomplete representations have been advocated because they have greater robustness in the presence of noise, can be sparser, and can have greater flexibility in matching structure in the data. However, because of this redundancy, a signal can have multiple expressions under an overcomplete frame \cite{lewicki2000overcompleteRepresentation}. See \figref{overcomplete_frame} for an example of the flexibility of an overcomplete frame to represent a dataset. As there is then an infinite number of solutions to \eqnref{linear_regression} with $\eps=0$, i.e. the problem is ill-posed, a regularization over $\z$ shall be introduced. Optimization techniques are then used to find the optimal solution which minimizes the sum of the error measure and the regularization term, controlled by an hyper-parameter.
 
-\paragraph{Ordinary least squares}
+\paragraph{Ordinary least squares.}
 The method of least squares is a standard approach in regression analysis to the approximate solution of overdetermined systems. "Least squares" means that the overall solution minimizes the sum of the squares of the errors made in the results of every single equation, i.e. it finds
 \begin{equation} \label{eqn:least_square}
-	\z^* = \argmin{\z} \normT{\x - \D\z}
+	\z^* = \argmin{\z} \normT{\x - \D\z},
 \end{equation}
 where $\normT{\cdot}$ denotes the squared $\ell_2$, or Euclidean, norm. This problem has the closed-form solution
 \begin{equation}
-	\z^* = (\D^T\D)^{-1} \D^T \x
+	\z^* = (\D^T\D)^{-1} \D^T \x,
 \end{equation}
 where $T$ denotes the matrix transpose. The primary assumption of \gls{OLS} is that there are zero or negligible errors in the independent variable $\D$, since this method only attempts to minimize the mean squared error in the dependent variable $\x$. That is not an issue in an auto-encoder setting where $\D$ is either hand-crafted or learned.
 
 % underdetermined == ill-posed ?
-\paragraph{Regularization}
+\paragraph{Regularization.}
 % L2.
-Tikhonov regularization, or ridge regression, is the most commonly used method of regularization of ill-posed problems. It adds a prior of the form $\lambda \normT{\gam \z}$ to \eqnref{least_square} where $\gam$ is the Tikhonov matrix. This matrix is often chosen to be a multiple of the identity matrix, i.e. $\gam = \alpha \mathbf{I}$, giving preference to solutions with smaller norms. In a Bayesian context, this is equivalent to placing a zero-mean normally distributed prior on $\z$ \cite{vogel2002inverseProblems}. In other cases, lowpass operators, e.g. a difference operator or a weighted Fourier operator, may be used to enforce smoothness if the underlying vector is believed to be mostly continuous. We will introduce a regularization of this kind to our model in \secref{manifold_learning}. An explicit solution is given by
+Tikhonov regularization \cite{tikhonov1963tikhonovRegularization}, or ridge regression, is the most commonly used method of regularization of ill-posed problems. It adds a prior of the form $\lambda \normT{\gam \z}$ to the minimization problem \eqnref{least_square} as follows:
+\begin{equation} \label{eqn:tikhonov_regularization}
+	\z^* = \argmin{\z} \normT{\x - \D\z} + \lambda \normT{\gam \z},
+\end{equation}
+where $\gam$ is the Tikhonov matrix. This matrix is often chosen to be a multiple of the identity matrix, i.e. $\gam = \alpha \mathbf{I}$, giving preference to solutions with smaller norms. In a Bayesian context, this is equivalent to placing a zero-mean normally distributed prior on $\z$ \cite{vogel2002inverseProblems}. In other cases, lowpass operators, e.g. a difference operator or a weighted Fourier operator, may be used to enforce smoothness if the underlying vector is believed to be mostly continuous. A regularization of this kind will be introduced in our model in \secref{manifold_learning}. An explicit solution is given by
 \begin{equation}
 	\z^* = (\D^T\D + \gam^T\gam)^{-1} \D^T \x.
 \end{equation}
 
 % L1.
-Another commonly used regularization is the \gls{LASSO}, which adds the prior $\lambda \normO{\z}$ to the minimization problem \eqnref{least_square} \cite{tibshirani1996Lasso}. In a Bayesian context, this is equivalent to placing a zero-mean Laplace prior distribution on $\z$ \cite{park2008BayesianLasso}. The advantage of the \gls{LASSO} is that it promotes the simplest solutions, i.e. the solutions with many zeros. Driving parameters to zero effectively deselects the features from the regression. \gls{LASSO} thus automatically selects the most relevant features, whereas ridge regression never fully discards any. For this reason, the \gls{LASSO} and its variants are fundamental to the field of \gls{CS}. We will introduce a regularization of this kind to our model in \secref{sparse_coding}.
+Another commonly used regularization is the \gls{LASSO} \cite{tibshirani1996Lasso}, which adds the prior $\lambda \normO{\z}$ to the minimization problem \eqnref{least_square} as follows:
+\begin{equation} \label{eqn:lasso_regularization}
+	\z^* = \argmin{\z} \normT{\x - \D\z} + \lambda \normO{\z},
+\end{equation}
+where $\normO{\z} = \sum_{i=1}^{m} |z_i|$ is the $\ell_1$ norm of $\z$, also called the Taxicab or Manhattan norm.
+In a Bayesian context, this is equivalent to placing a zero-mean Laplace prior distribution on $\z$ \cite{park2008BayesianLasso}. The advantage of the \gls{LASSO} is that it promotes the simplest solutions, i.e. the solutions with many zeros. Driving parameters to zero effectively deselects the features from the regression. \gls{LASSO} thus automatically selects the most relevant features, whereas ridge regression never fully discards any. For this reason, the \gls{LASSO} and its variants are fundamental to the field of \gls{CS}. A regularization of this kind will be introduced in our model in \secref{sparse_coding}.
 
 % L1 + L2.
-An extension of this approach is the elastic net regularization which linearly combines the $\ell_1$ and $\ell_2$ penalties of the \gls{LASSO} and ridge methods. This regularization overcomes some limitations of the $\ell_1$ penalty, e.g. the saturation which happens for high-dimensional data with few examples, or the fact that the \gls{LASSO} tends to select only one variable and ignore the others if there is a group of highly correlated variables \cite{zou2005ElasticNet}.
+An extension of this approach is the elastic net regularization \cite{zou2005ElasticNet} which linearly combines the $\ell_1$ and $\ell_2$ penalties of the \gls{LASSO} and ridge methods as follows:
+\begin{equation} \label{eqn:elasticnet_regularization}
+	\z^* = \argmin{\z} \normT{\x - \D\z} + \lambda_2 \normT{\z} + \lambda_1 \normO{\z}.
+\end{equation}
+This regularization overcomes some limitations of the $\ell_1$ penalty, e.g. the saturation which happens for high-dimensional data with few examples, or the fact that the \gls{LASSO} tends to select only one variable and ignore the others if there is a group of highly correlated variables.
 
 \section{Sparse coding} \label{sec:sparse_coding}
 % What it is, why it works, why it's good.
 % paper who demonstrates that L1 penalty leads to same solution as L0 while being convex, not combinatorial
 
 % Sparse coding.
-The main idea behind sparse coding \cite{olshausen1996SparseV1} is to express the signal $\x \in \Xx \subset \R^n$ as a sparse linear combination of basis functions $\set{\d}{m}$, or atoms, from an overcomplete dictionary $\D \in \R^{n \times m}$. The sparse code $\z^* \in \R^m$ is given by
+The main idea behind sparse coding \cite{olshausen1996SparseV1, mairal2008sparseCoding} is to express the signal $\x \in \Xx \subset \R^n$ as a sparse linear combination of basis functions $\set{\d}{m} \in \R^n$, or atoms, from an overcomplete dictionary $\D \in \R^{n \times m}$. The sparse code $\z^* \in \R^m$ is given by
 \begin{equation} \label{eqn:sparsecoding}
-	\z^* = \argmin{\z} \frac{\lambda_d}{2} \normT{\x - \D \z} + \lambda_z \normZ{\z}
+	\z^* = \argmin{\z} \frac{\lambda_d}{2} \normT{\x - \D \z} + \lambda_z \normZ{\z},
 \end{equation}
 where $\normZ{\z}$ denotes the number of non-zero elements in $\z$.  $\lambda_d$ and $\lambda_z$ are the (redundant) hyper-parameters setting the trade-off between the data term, an accurate reconstruction, and the prior, a sparse solution. Overcomplete sparse representations tend to be good features for classification systems as they provide a succinct representation of the signal, are robust to noise and are more likely to be linearly separable due to their high dimensionality.
 
 % Faster sparse coding approximations.
 Finding the sparse code $\z^*$ however requires a combinatorial search which is an NP-hard problem, intractable in high dimensional spaces. Various approximations have thus been proposed. Matching Pursuit \cite{mallat1993MatchingPursuit} offers a greedy approximation to the solution while \gls{BP} \cite{chen1998BasisPursuit} is the popular convex approximation
 \begin{equation} \label{eqn:basispursuit}
-	\z^* = \argmin{\z} \frac{\lambda_d}{2} \normT{\x - \D \z} + \lambda_z \normO{\z}
+	\z^* = \argmin{\z} \frac{\lambda_d}{2} \normT{\x - \D \z} + \lambda_z \normO{\z},
 \end{equation}
-where $\normO{\z} = \sum_{i=1}^{m} |z_i|$ is the $\ell_1$ norm of $\z$, also called the Taxicab or Manhattan norm. This approximation is a regularized version of the linear regression model presented in \secref{linear_regression}. As is now well understood \cite{candes2005CS, donoho2006CS}, the $\ell_1$ norm is a very good proxy for the $\ell_0$ pseudo-norm and naturally induces sparse results. It can even be shown to recover exactly the true sparse code, i.e. the solution of \eqnref{sparsecoding} (if there is one), under mild conditions \cite{donoho2003OptSparse}. {\color{red}link with \gls{RIP}}. A number of algorithms have been proposed to efficiently solve this problem \cite{chen1998BasisPursuit, beck2009FISTA, ng2006EfficientSparse, li2009Coordinate}. They however still rely on computationally expensive iterative procedures which limit the system's scalability and real-time applications. While a direct method will always be preferred for feature extraction, iterative methods will still be necessary during training. Distributed computing with \gls{GPU} or via cloud computing will hopefully accelerate the process.
+which is the \gls{LASSO} regularized least square problem introduced in \eqnref{lasso_regularization}. As is now well understood \cite{candes2005CS, donoho2006CS}, the $\ell_1$ norm is a very good proxy for the $\ell_0$ pseudo-norm and naturally induces sparse results. It can even be shown to recover exactly the true sparse code, i.e. the solution of \eqnref{sparsecoding} (if there is one), under mild conditions \cite{donoho2003OptSparse}. {\color{red}link with \gls{RIP}}. A number of algorithms have been proposed to efficiently solve this problem \cite{chen1998BasisPursuit, beck2009FISTA, ng2006EfficientSparse, li2009Coordinate}. They however still rely on computationally expensive iterative procedures which limit the system's scalability and real-time applications. While a direct method will always be preferred for feature extraction, iterative methods will still be necessary during training. Distributed computing with \gls{GPU} or via cloud computing will hopefully accelerate the process.
 
 \section{Dictionary learning} \label{sec:dictionary_learning}
 
 % Why ?
-In classical sparse coding, the dictionary is composed of known functions such as sinusoids, gammatones, wavelets or Gabors; i.e. hand-crafted features. One may also want to learn a dictionary that is adaptive to the type of data at hand. This approach allows an even more compact representation and may lead to the discovery of previously unknown discriminative features.
+\paragraph{Model.}
+In classical sparse coding, the dictionary is composed of known functions such as sinusoids \cite{bracewell1965fourier}, wavelets \cite{mallat1999wavelet}, Gabors \cite{gabor1946gabor} or gammatones\footnote{A gammatone is a sinusoid (a pure tone) with an amplitude envelope which is a scaled gamma distribution function. It is used to build cochlear models.} \cite{holdsworth1992gammatone}; i.e. hand-crafted features. One may also want to learn a dictionary that is adaptive to the type of data at hand. This approach may allow an even more compact representation and may lead to the discovery of previously unknown discriminative features.
 
 % How ?
-To use the dictionary $\D$ as an unknown variable, we shall integrate all the training data into the objective function as the dictionary depends on all of them. The energy function, composed by an $\ell_2$ fidelity term and an $\ell_1$ penalty, becomes
+To use the dictionary $\D$ as an unknown variable, all the training data shall be part of the objective function as the dictionary depends on all of them. The energy function, composed by an $\ell_2$ fidelity term and an $\ell_1$ penalty, becomes
 \begin{equation} \label{eqn:en_dict}
-	\Eone = \frac{\lambda_d}{2} \normF{\X - \D \Z} + \lambda_z \normO{\Z}
+	\Eone = \frac{\lambda_d}{2} \normF{\X - \D \Z} + \lambda_z \normO{\Z},
 \end{equation}
 where $\normF{\cdot}$ denotes the squared Frobenius norm, $\X = \set{\x}{N} \in \R^{n \times N}$ is the set of training vectors and $\Z = \set{\z}{N} \in \R^{m \times N}$ their associated sparse codes. $N$ is naturally the number of training vectors, which should be much greater than the size $m$ of the dictionary to avoid the trivial solution where examples are copied in the dictionary. The problem to solve is then
 \begin{equation} \label{eqn:pr_dict}
-	\minimize{\Z,\D} \Eone \st \cstd
+	\minimize{\Z,\D} \Eone \st \cstd,
 \end{equation}
-where the constraint (usually implemented by rescaling the columns $\d_i$ of $\D$ at each iteration) prevents the trivial solution where the code coefficients go to zero while the bases are scaled up. While this problem is not convex, an approximate solution can be found by iteratively minimizing for $\Z$ and $\D$ \cite{olshausen1996SparseV1}.
+where the $\ell_2$ ball constraint (usually implemented by rescaling the columns $\d_i$ of $\D$ at each iteration) prevents the trivial solution where the code coefficients go to zero while the bases are scaled up. While this problem is not convex, a good approximate solution can be found by iteratively minimizing for $\Z$ and $\D$ \cite{olshausen1996SparseV1}.
 % Simple gradient descent or more sophisticated methods \cite{chen1998BasisPursuit, beck2009FISTA, li2009Coordinate} for $\z$, stochastic gradient descent for $\D$.
 
-\paragraph{Completeness}
-The learned dictionary may be seen as an overcomplete frame of the subspace $\Xx = \spanning \{\x_i\}_{i=1}^N \subset \R^n$ spanned by the training data. The overcompleteness of the learned dictionary could indeed be tested: the frame should be able to perfectly represent any training sample, i.e. in the absence of the $\ell_1$ regularization, the reconstruction error $\eps$ of \eqnref{linear_regression} should be zero.
+\paragraph{Completeness.}
+The learned dictionary may be seen as an overcomplete frame of the subspace $\Xx$ spanned by the training data. The overcompleteness of the learned dictionary could indeed be tested: the frame should be able to perfectly represent any training sample, i.e. in the absence of the $\ell_1$ regularization, the reconstruction error $\eps$ of \eqnref{linear_regression} should be zero.
 
 % Motivation: learned dictionaries resemble brain processing stages.
-\paragraph{Motivation}
+\paragraph{Biological motivation.}
 There is evidence that sparse coding may be a strategy employed by the brain in the early stages of visual and auditory processing \cite{olshausen1996SparseV1, olshausen1997SparseV1, smith2006SparseAudio}. Basis functions learned on natural images have been shown to resemble the receptive fields of neurons in the visual cortex \cite{olshausen1996SparseV1, olshausen1997SparseV1}. Basis functions learned on natural sounds were found to be highly similar to gammatone functions \cite{smith2006SparseAudio} which have been used to model the action of the basilar membrane in the inner ear. Moreover, learning on natural time-varying stimuli such as speech or video has been shown to produce localized bases \cite{lewicki2000SparseSpeech, olshausen2000SparseVideo}.
 
 \section{Manifold learning} \label{sec:manifold_learning}
@@ -177,7 +195,7 @@ There is evidence that sparse coding may be a strategy employed by the brain in 
 %\subsection{Manifold}
 
 % General introduction.
-\paragraph{Manifold}
+\paragraph{Manifold.}
 In mathematics, a manifold is a topological space that resembles Euclidean space near each point, i.e. each point of an $n$-dimensional manifold has a neighborhood that is homeomorphic to the Euclidean space of dimension $n$. Lines and circles, but not figure eights, are one-dimensional manifolds. Two-dimensional manifolds are also called surfaces. Examples include the plane, the sphere, and the torus, which can all be embedded in three-dimensional real space. \figref{manifolds} shows examples of 1D and 2D manifolds.
 
 \begin{figure}[ht]
@@ -213,7 +231,7 @@ We use graphs as discrete approximations of low-dimensional manifolds embedded i
 % What is a graph --> discrete approximation of a low-dimensional manifold embedded in a high dimensional space.
 
 % General formulation.
-\paragraph{Graph}
+\paragraph{Graph.}
 Graphs are generic data representation forms which are useful for describing the geometric structures of data domains in numerous applications, including social, energy, transportation, sensor, and neuronal networks. The connectivity and weight associated with each edge in the graph is either dictated by the physics of the problem at hand or inferred from the data; in which case it often represents the similarity between the two vertices it connects. For instance, the edge weight may be inversely proportional to the physical distance between nodes in the network, or proportional to a similarity measure between those nodes. A \textit{graph signal} is a signal which resides on the graph, i.e. a signal with one sample at each vertex of the graph. An example of a graph signal is shown in \figref{example_graph}.
 
 \begin{figure}[ht]
@@ -235,17 +253,17 @@ We first review some basic definitions and notations from spectral graph theory 
 
 A graph $\G$
 
-\paragraph{Type}
+\paragraph{Type.}
 % Type of graph (KNN vs epsilon)
 
-\paragraph{Distance metric}
+\paragraph{Distance metric.}
 % euclidean (small dim) and cosine (angular, high dim)
 % ref for why cosine is better in high dim
 % intuition: cosine is euclidean when data projected to sphere
 
 One of the reasons for the popularity of cosine similarity is that it is very efficient to evaluate, especially for sparse vectors, as only the non-zero dimensions need to be considered.
 
-\paragraph{Kernel}
+\paragraph{Kernel.}
 % Gaussian or polynomial
 
 %\section{Spectrum}
@@ -255,9 +273,9 @@ One of the reasons for the popularity of cosine similarity is that it is very ef
 
 There is more to spectral graph theory than what we use in this project. A number of transform methods, like the Fourier or wavelet transforms, have been defined on arbitrary graphs. Common data processing tasks in these applications include filtering, denoising, inpainting, and compressing graph signals.
 
-\paragraph{Weight matrix}
+\paragraph{Weight matrix.}
 
-\paragraph{Laplacian}
+\paragraph{Laplacian.}
 % The graph (normalized) Laplacian is an approximation of the Laplace-Beltrami operator. --> Dirichlet energy
 % normalized vs un-normalized, cite normalized approximates the Laplace-Beltrami operator
 % A way to test if the Laplacian is well constructed is... (see blog)
@@ -265,7 +283,7 @@ There is more to spectral graph theory than what we use in this project. A numbe
 % The graph Laplacian as a difference operator.
 
 % Descrete graph Laplacian converges to continuous Laplace-Beltrami operator.
-\paragraph{Consistency}
+\paragraph{Consistency.}
 
 \section{Encoder} \label{sec:encoder}
 % Auto-encoder: explicit encoder instead of implicit encoder.
@@ -274,7 +292,7 @@ There is more to spectral graph theory than what we use in this project. A numbe
 {\color{red} Put after sparse auto-encoders ? Because it is our definition of a sparse auto-encoder.}
 
 % Why ?
-In order to avoid the iterative procedure typically required to infer the sparse code, we aim at an encoder which can quickly map inputs to approximations of their sparse code. Several works \cite{lecun2010PSD, lecun2010LISTA, lecun2013DrSAE} {\color{red} [others not from LeCun]} has been done in this direction. The addition of an encoder to the sparse coding scheme leads to the sparse variant of auto-encoders which we introduced in \ref{sec:auto_encoders}.
+In order to avoid the iterative procedure typically required to infer the sparse code, we aim at an encoder which can quickly map inputs to approximations of their sparse code. Several works \cite{lecun2010PSD, lecun2010LISTA, lecun2013DrSAE} {\color{red} [others not from LeCun]} have been done in this direction. The addition of an encoder to the sparse coding scheme leads to the sparse variant of auto-encoders which was introduced in \ref{sec:auto_encoders}.
 
 % 2nd motivation.
 Moreover, adding structure to the problem should enhance the behavior of the loss function and help sparse recovery \cite{kowalski2009sparse, baraniuk2010modelCS, huang2011LearningStructuredSparsity, jenatton2011structured} {\color{red}Then \cite{donoho2003OptSparse} should not be strong enough.}
@@ -282,12 +300,12 @@ Moreover, adding structure to the problem should enhance the behavior of the los
 % How ?
 Introducing a trainable encoder $\E \in \R^{m \times n}$ into our model gives the energy function
 \begin{equation}\label{eqn:en_encoder}
-	\Etwo = \Eone + \frac{\lambda_e}{2} \normF{\Z - \E \X} {\color{red} + \lambda_s \normO{\E \X}}
+	\Etwo = \Eone + \frac{\lambda_e}{2} \normF{\Z - \E \X} {\color{red} + \lambda_s \normO{\E \X}},
 \end{equation}
 where $\lambda_e$ and $\lambda_s$ are two additional hyper-parameters which control the sparsity versus fidelity tradeoff. The problem is then defined by
 \begin{equation}\label{eqn:pr_encoder}
 	\minimize{\Z,\D,\E} \Etwo \st \cst{\d}{i} , \cst{\e}{k} ,
-	\forallx{i}{m} , \forallx{k}{n}
+	\forallx{i}{m} , \forallx{k}{n},
 \end{equation}
 where $\e_k$ are the columns of $\E$. Again, the $\ell_1$ penalty $\normO{\E \X}$ regularizes the least square problem, i.e. the \gls{LASSO} method.
 
@@ -311,6 +329,7 @@ While it is often a good idea to control the energy, the constraint on the colum
 
 Our overall model may be thought as an hybrid between a sparse and a denoising auto-encoder.
 
+% Identify parts of the energy functions to equations in regression, e.g. tik, lasso, elastic.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

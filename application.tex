@@ -98,6 +98,9 @@ The structuring auto-encoder developed in \partref{algorithm} generalizes their 
 % Results and comparisons
 % Include discussion in results ?
 
+% All the simulations on a reduced dataset because of computation time.
+% Only one simulation on the full set for comparison with others. So without noise, with graph.
+
 \section{Spectrograms}
 % Show example spectrograms of jazz / blues. Show how they are different (music theory) and can such be distinguished.
 
@@ -133,4 +136,23 @@ Overcompleteness, defined by the hyper-parameter $m$, must be evaluated by consi
 \section{Discussion}
 % Is the model appropriate for the problem ?
 
-While higher classification accuracies are probably achievable by fine-tuning the hyper-parameters and introducing further tricks; e.g. by applying a \gls{LCN} to the \gls{CQT} spectrograms or working on individual octaves, two techniques used by \cite{lecun2011PSDaudio}; we made the point that our model is useful and that we shall continue to research on it. We may even further improve the performance of our model by creating a better graph, i.e. a graph more adapted to the problem at hand, by fine-tuning the hyper-parameters.
+\begin{table}
+	\begin{center}
+		\begin{tabular}{|l|l|l|}
+			\hline
+			Classifier & Features & Acc. (\%) \\
+			\hline
+			linear SVM & raw audio & 0 \\
+			linear SVM & CQT spectrogram & 0 \\
+			linear SVM & normalized CQT spectrogram & 0 \\
+			linear SVM & features from \eqnref{eqn:basispursuit} & 0 \\
+			linear SVM & features from \eqnref{eqn:minz} & 0 \\
+			linear SVM & features from \eqnref{eqn:extraction} & 0 \\
+			\hline
+		\end{tabular}
+	\end{center}
+	\caption{Genre recognition accuracy of various algorithms on GTZAN.}
+	\label{tab:accuracy_comparison}
+\end{table}
+
+While our results are not state-of-the-art (yet), depicted in \tabref{accuracy_comparison}; we made the point that our model is useful and that we shall continue to research on it. Higher classification accuracies are probably achievable by fine-tuning the hyper-parameters and introducing further tricks: e.g. by applying a \gls{LCN} to the \gls{CQT} spectrograms or working on individual octaves, two techniques used by \cite{lecun2011PSDaudio}. We may even further improve the performance of our model by creating a better graph, i.e. a graph more adapted to the problem at hand, by fine-tuning the hyper-parameters.
