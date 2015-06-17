@@ -48,13 +48,14 @@
 \newacronym{NLDR}{NLDR}{Non-Linear Dimensionality Reduction}
 \newacronym{SOM}{SOM}{Self-Organizing Map}
 \newacronym{LLE}{LLE}{Locally-Linear Embedding}
+\newacronym{OLS}{OLS}{Ordinary least squares}
 
 \newcommand{\partref}[1]{Part~\ref{part:#1}}
 \newcommand{\chapref}[1]{Chapter~\ref{chap:#1}}
 \newcommand{\secref}[1]{Section~\ref{sec:#1}}
-\newcommand{\eqnref}[1]{(\ref{#1})}  % Eqn~(\ref{#1})
-\newcommand{\figref}[1]{Figure~\ref{#1}}
-\newcommand{\tabref}[1]{Table~\ref{#1}}
+\newcommand{\eqnref}[1]{(\ref{eqn:#1})}  % Eqn~(\ref{#1})
+\newcommand{\figref}[1]{Figure~\ref{fig:#1}}
+\newcommand{\tabref}[1]{Table~\ref{tab:#1}}
 \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
 
 \newcommand{\R}{\mathbb{R}}
@@ -62,6 +63,7 @@
 \DeclareMathOperator*{\minimizeop}{minimize}
 \DeclareMathOperator*{\sgn}{sgn}
 \DeclareMathOperator*{\tr}{tr}
+\DeclareMathOperator*{\spanning}{span}
 \newcommand{\argmin}[1]{\argminop\limits_{#1}}
 \newcommand{\minimize}[1]{\minimizeop\limits_{#1}}  % or \min
 \newcommand{\normT}[1]{\| #1 \|_2^2}
@@ -79,9 +81,12 @@
 \newcommand{\x}{\mathbf{x}}
 \newcommand{\y}{\mathbf{y}}
 \newcommand{\z}{\mathbf{z}}
+\newcommand{\eps}{\mathbf{\epsilon}}
+\newcommand{\gam}{\mathbf{\Gamma}}
 \newcommand{\Eone}{E_1(\Z, \D)}
 \newcommand{\Etwo}{E_2(\Z, \D, \E)}
 \newcommand{\Ethree}{E_3(\Z, \D, \E)}
+\newcommand{\Xx}{\mathcal{X}}
 \newcommand{\G}{\mathcal{G}}
 \newcommand{\V}{\mathcal{V}}
 \newcommand{\set}[2]{\{#1_i\}_{i=1}^#2}
@@ -220,6 +225,8 @@
 %\section{Feature / representation learning}
 % NN is well suited for representation learning
 % We want unsupervised feature learning vs supervised vs hand-crafted
+% Representation learning
+% Learning Distributed Representations: Bengio learning deep ai
 
 % What will be presented. Design goal.
 This thesis introduces a new auto-encoder variant which we call a \textit{structuring auto-encoder}; because it keeps the structure of the data while transforming it in another representation. As we shall see, it has the properties of an hybrid between a sparse auto-encoder \cite{lecun2006sparseAutoencoders, ranzato2007stackedSparseAutoencoders} and a denoising auto-encoder \cite{bengio2008denoisingAutoencoders}. The primary goal of the proposed algorithm is unsupervised representation learning toward the goal of feature extractions, while being robust to noisy data and fast at feature extraction (after the training phase). The quality of the extracted features shall be evaluated through a classification task.
