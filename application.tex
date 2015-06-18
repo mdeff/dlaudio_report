@@ -4,20 +4,19 @@
 \chapter{Problem} \label{chap:problem}
 % Explain the problem we aim at solving: recognizing musical genre while being robust for e.g. deployement on a smartphone which may well be in a noisy environment.
 
-The \gls{MGR} problem is the task of automatically recognizing the musical genre of an unknown audio clip given a set of labeled clips. A clip is unknown in the sense that only the raw audio is available, there is no access to any meta-data.
+\gls{MGR} is a common task for \gls{MIR} and is the usual task for the yearly \gls{MIREX}\footnote{\url{http://www.music-ir.org/mirex/wiki/MIREX_HOME}}. The \gls{MGR} problem is the task of automatically recognizing the musical genre of an unknown audio clip given a set of labeled clips. A clip is unknown in the sense that only the raw audio is available, there is no access to any meta-data.
 
-We think that this problem satisfies the hypothesizes we made in 
+%\section{Performance evaluation}
+The accuracy of the classified clips is used as a proxy for the discriminative power of the learned representations.
+%While the classification accuracy does not say all about \gls{MGR}, it proved useful for comparison purposes and is easy to asses.
 
 \section{Dataset}
-% The curious case of the GTZAN dataset 
 
-The system's performance is to be tested on GTZAN\footnote{Available at http://marsyasweb.appspot.com/download/data\_sets/}, the most used public dataset in \gls{MGR} \cite{sturm2014survey} which was created by Tzanetakis and Cook for their work on automatic \gls{MGR} \cite{tzanetakis2002GTZAN}. It consists of 1000 30-second audio clips (all truncated to $660000$ samples to not bias the classifier in any way) with 100 examples in each of 10 different categories: blues, classical, country, disco, hiphop, jazz, metal, pop, reggae and rock. All clips are sampled at 22050 Hz.
+The system's performance is to be evaluated on GTZAN\footnote{Available at \url{http://marsyasweb.appspot.com/download/data\_sets/}.}, the most-used public dataset for evaluation in machine listening research for \gls{MGR} \cite{sturm2014survey} which was created by Tzanetakis and Cook for their work in the domain \cite{tzanetakis2002GTZAN}. It consists of 1000 30-second audio clips (all truncated to $660000$ samples to not bias the classifier in any way) with 100 examples in each of 10 different categories: blues, classical, country, disco, hiphop, jazz, metal, pop, reggae and rock. All clips are sampled at 22050 Hz.
 
-While the composition and integrity of the dataset has been disputed \cite{sturm2012GTZANanalysis}, it remains the most commonly used benchmark.
-
-\section{Performance evaluation}
-
-While the classification accuracy does not say all about \gls{MGR}, it proved useful for comparison purposes and is easy to asses.
+% nuit-blanche.blogspot.ch/2013/12/the-curious-case-of-gtzan-dataset.html
+The composition and integrity of the dataset has been analyzed in \cite{sturm2012GTZANanalysis}. It is known that the dataset contains recurrent faults: repetitions, mislabelings, and distortions. These faults obviously challenge the interpretability of any result derived using it. \cite{sturm2013GTZANcritic} goes even further and disprove the claims that all \gls{MGR} systems are affected in the same ways by these faults, and that the performances of \gls{MGR} systems in GTZAN, working with the same data and faults, are still meaningfully comparable.
+%Our results are however only compared to themselves, making these critics essentially irrelevant.
 
 %\section{Genres}
 % How we can qualitatively distinguish genres.
@@ -37,45 +36,71 @@ While the classification accuracy does not say all about \gls{MGR}, it proved us
 % Visual diagram: pre-processing, feature extraction, post-processing, classification, voting
 % Inspyred by [ref lecun] which uses sparse auto-encoders.
 
-The design of the genre recognition system is inspired by \cite{lecun2011PSDaudio}, which uses a layer of sparse auto-encoder to learn sparse representations of audio spectrograms targeted at \gls{MGR}. Although they call their encoder technique \gls{PSD} \cite{lecun2010PSD}, it is effectively a sparse auto-encoder \cite{bengio2009learningDeepAI}. The structured auto-encoder developed in \partref{algorithm} generalizes their loss function as an energy function and introduces a structuring term (\secref{manifold_learning}). A well-posed iterative scheme to solve the resulting non-convex optimization problem was proposed in \chapref{learning}.
+The design of the genre recognition system is inspired by \cite{lecun2011PSDaudio}, which uses a layer of sparse auto-encoder to learn sparse representations of audio spectrograms targeted at \gls{MGR}. Although they call their encoder technique \gls{PSD} \cite{lecun2010PSD}, it is effectively a sparse auto-encoder \cite{bengio2009learningDeepAI}. The structured auto-encoder developed in \partref{algorithm} generalizes their loss function as an energy function and introduces a structuring term (\secref{manifold_learning}).
 
-The system mainly consists of three independent blocs:
+The system mainly consists of three independent building blocs:
 \begin{enumerate}
-	\item \textbf{Preprocessing}, whose goal is to transform the raw audio clips into spectrograms. Slicing the spectrograms in short time frames provides time invariance while the spectrograms bring higher-level features built on prior knowledge about audio signals, it  an hand-crafted features.
-	\item \textbf{Features extraction}: spectrogram slices, which provide time invariance, are given as input vectors to the proposed structured auto-encoder who transforms them into a sparse and structured representation.
+	\item \textbf{Preprocessing}, whose goal is to transform the raw audio signal into a time-frequency representation. It is essentially a first feature extraction pass, built on prior knowledge about signal processing and audio signals in particular. The spectrograms are further sliced in short time frames to provide time invariance.
+	\item \textbf{Features extraction}: the set of spectrogram slices is given as input vectors to the proposed structured auto-encoder who transforms them into a sparse and structured representation.
 	\item \textbf{Classification}: the extracted features are used for genre classification after a post-processing step analog to feature pooling. The accuracy is assessed by a cross-validation scheme.
 \end{enumerate}
 
-{\color{red} figure}
+{\color{red} system figure}
 
-\section{Pre-processing}
-% Frames, CQT, LCN, feature / sample normalization
+\section{Preprocessing} \label{sec:preprocessing}
+% Frames, CQT, LCN, feature / sample scaling.
 % A LCN may further increase the accuracy [ref LeCun].
 
-\subsection{Frames}
+\paragraph{Frames.}
+Each clip is divided into short frames of $n_a = 1024$ samples, which roughly corresponds to 46 ms of raw audio, in order to provide translation invariance. A 50\% overlap between consecutive frames introduces redundancy in the data. The GTZAN dataset is thus decomposed in $N=1288000$ frames of dimensionality $n_a = 1024$.
 
-\subsection{Constant-Q transform}
+\paragraph{\gls{CQT}.}
 % Spectrogram with geometrically spaced frequencies.
+A spectral representation of each of those frames is computed via the \gls{CQT} with $n_s=96$ filters spanning four octaves from C\textsubscript{2} to C\textsubscript{6} at quarter-tone resolution, where C\textsubscript{4} is the middle C in the scientific pitch notation \cite{young1939ScientificPitch}. The A440 tuning standard sets A\textsubscript{4} = 440 Hz \cite{A440std}.
+
+Apart from the constant quality factor, i.e. a constant frequency over bandwidth ratio, an important property of the \gls{CQT} is that the center frequencies of the filters are logarithmically spaced, so that consecutive notes in the musical scale are linearly spaced.
+This transform is generally well suited to musical data: (i) the logarithm scale requires fewer frequency bins to cover a given range effectively, which proves useful when frequencies span several octaves. (ii) It mirrors the human auditory system, whereby at lower frequencies spectral resolution is better, whereas temporal resolution improves at higher frequencies. (iii) The harmonics of musical notes form a pattern characteristic of the timbre of the instrument: as the fundamental frequency changes, the relative position of these harmonics remains constant.
+
+This step is an intelligent dimensionality reduction from $n_a = 1024$ to $n_s = 96$. Intelligent in the sense that it extracts useful features, as demonstrated by the baseline experiment (\secref{spectrograms}).
+
+The implementation uses \textit{librosa}\footnote{Available at \url{https://github.com/bmcfee/librosa/}.}, a Python library which implements an efficient algorithm proposed by the authors of \cite{schorkhuber2010CQTtoolbox}. An efficient and accurate implementation of the necessary sample rate conversion is provided by \textit{libsamplerate}\footnote{Available at \url{http://www.mega-nerd.com/SRC/index.html}.}.
+
+\paragraph{\gls{LCN}.}
+A subtractive and divisive \gls{LCN}, described in \cite{lecun2010LCN}, may then be applied to the spectrograms in order to enhance the contrast.
+Consider a point in the spectrogram and its neighborhood along both the time and frequency axes weighted by a Gaussian window. First, the average of the weighted neighborhood is subtracted from each point (the subtractive part). Then, each point is divided by the standard deviation of its new weighted neighborhood (the divisive part).
+
+The technique enforces competition between neighboring points in the spectrogram, so that low-energy signals are amplified while high-energy ones are muted. The entire process can be seen as a simple form of \gls{AGC}. It tries to inverse the heat diffusion, similarly to a shock filter \cite{osher1990shockFilters}. The idea of contrast normalization is inspired by visual neuroscience models \cite{lyu2008LCNneuro1, pinto2008LCNneuro2}.
+
+\paragraph{Scaling.}
+The range of the independent variables is finally rescaled in $[0,1]$ to eliminate any bias toward features who have a broad range of values. Each feature then contributes approximately proportionately to the distance between two feature vectors. Another commonly used scaling method is standardization: the independent variables are rescaled to have zero-mean and unit-variance. Yet another method is to rescale each feature vector to unit length, which usually means dividing each component by the Euclidean length of the vector.
 
 \section{Feature extraction}
 % Most accurate extraction with original model.
 % Much faster approximations by ignoring some terms of the objective.
 
-\section{Classification}
-% Feature aggregation (feature vectors), linear SVM, majority voting (winner take all)
-% Voting further gives a cheap confidence level about our choice.
-% Multi-class: one-vs-one / one-vs-the-rest
+In a transductive learning paradigm \cite{vapnik1998transductiveLearning}, the auto-encoder model (\chapref{model}) is trained on the entire dataset (which includes the training and test sets without labels). Under this paradigm, test samples are known in advance, and the system is simply asked to produce labels for them. This paradigm was chosen for speed reasons: since training is computationally expensive, it is best done only once per experiment. The training phase is essentially the application of the algorithm presented in \chapref{learning} to solve \eqnref{pr_encoder} over the whole dataset. A structured and sparse representation is readily available for each spectrogram of the dataset, they are a by-product of model fitting.
 
-\subsection{Feature aggregation}
+Note that while that paradigm is used for this application, the algorithm proposed in \partref{algorithm} is still purely unsupervised, i.e. it makes no use of the training labels.
+Note also that while the system was designed for transductive learning, it can act in a supervised learning way. A predictive model was built during training, and, using the learned parameters, a representation for a previously unknown spectrogram may be inferred with \eqnref{z_exact} or \eqnref{z_direct}.
+
+\section{Classification}
+% Feature aggregation (feature vectors), linear SVM, majority voting (winner take all).
+
+\paragraph{Aggregate features.}
 % Analog to feature pooling.
 % Goal: change of time scale.
+Aggregate features are computed for each song by summing up the frame-level features over 5-second time windows overlapping by half, which has been found to substantially improve classification performance \cite{bergstra2006aggregateFeatures, hamel2010aggregateFeatures}. Since each sparse code records which dictionary elements are present in a given \gls{CQT} frame, these aggregate feature vectors can be thought of as histograms recording the number of occurrences of each dictionary element in the time window.
 
-\subsection{Support Vector Machine}
-% Small introduction to SVM.
+\paragraph{\gls{SVM}.}
+Aggregate features are then classified by a \gls{SVM} \cite{cortes1995SVM}, which is a non-probabilistic binary linear classifier. It was chosen because it is fast to train and scale well to large datasets (thanks to the few support vectors), which is an important consideration in \gls{MIR}.
 
-\subsection{Majority voting}
+In a one-vs-the-rest strategy to multi-class classification, \gls{SVM} basically constructs a set of maximum-margin hyperplanes which separate a class from all the others. The alternative approach to multi-class, one-vs-one, requires to train one classifier per pair of class.
 
-\subsection{Cross-validation}
+The implementation uses the \textit{scikit-learn} Python framework \cite{sklearn} which provides wrappers to \textit{libsvm} \cite{libsvm} and \textit{liblinear} \cite{liblinear}, two independent implementations of the \gls{SVM}. We observed no significant variations between the two.
+
+\paragraph{Majority voting}
+% Voting further gives a cheap 
+The genre prediction for a clip is given by a majority vote between the 12 aggregate features. Instead of using it in a winner-take-all fashion, this information could be exploited as a confidence level about the chosen class.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -125,12 +150,36 @@ The iterative optimization scheme presented in \chapref{learning} is, by definit
 
 Furthermore, the classification accuracy was measured on individual frames, i.e. before majority voting, rather than on whole clip. The rational is to capture the confidence about the class of a clip. Another positive impact is the reduction of the variance caused by the increased number of samples.
 
+Note that no contrast enhancement (the \gls{LCN} described in \secref{preprocessing}) was applied to the spectrograms for the following experiments.
+
+Note that the provided results (\chapref{results}) have been  without this step.
+
 The first presented result shows that the sparse and structured representation extracted from the spectrograms by the structured auto-encoder defined in \partref{algorithm} is indeed more discriminative than the spectrograms in a classification task.
 
 The second experiment shows that structured representations are robust to noise.
 
-\section{Spectrograms}
+All the conducted experiments, whether they succeed or failed, may be viewed online\footnote{The IPython notebooks are stored on GitHub and can be visualized at \url{http://nbviewer.ipython.org/github/mdeff/dlaudio_results/}.}.
+
+% State what the hyper-parameters are.
+
+\paragraph{Cross-validation}
+All the results therein are averages of 20 runs of 10-fold cross-validation.
+
+Following standard practice,
+classification performance was measured by 10-fold cross-
+validation. For each fold, 100 songs were randomly selected
+to serve as a test set, with the remaining 900 serving as train-
+ing data. This procedure was repeated 20 times, and the re-
+sults averaged to produce a final classification accuracy.
+
+\section{Spectrograms} \label{sec:spectrograms}
 % Show example spectrograms of jazz / blues. Show how they are different (music theory) and can such be distinguished.
+
+% Or whole dataset.
+The spectrograms are indeed discriminative features. On an experiment to classify $N = $ frames, we observed a classification accuracy of $00$, whereas classification with raw audio yields an accuracy of $00$. Classifications with raw spectrogram is our baseline for further experiments: we will report improvements of the extracted features with respect to the baseline.
+
+%\subsection{Baseline} \label{sec:baseline}
+%We first applied linear SVM (or other) to raw audio, \gls{CQT} spectrogram and \gls{LCN} normalized spectrogram. \tabref{tab:comparison} indeed shows that each transformation, i.e. extraction of higher level features, of the raw audio makes sense and improve the classification accuracy.
 
 \section{Learned features}
 % Show some atoms: harmonics, chords, harmonies, drums.
@@ -138,6 +187,15 @@ The second experiment shows that structured representations are robust to noise.
 %Via music theory, we know that music is constructed via some building blocks, e.g.
 
 Although we have not observed meaningful atoms (yet), \cite{lecun2010PSD} showed that when dictionaries where trained on individual octaves, they discovered harmonics, chords and harmonies without any prior about music theory.
+
+% LeCun.
+One can see single notes and what appear to be series of linearly
+spaced notes, which could correspond to chords, harmonics
+or harmonies. Note that some of the basis functions appear
+to be inverted, since the code coefficients can be negative.
+A number of the learned basis functions also seem to have
+little recognizable structure.
+
 
 \section{Convergence analysis}
 

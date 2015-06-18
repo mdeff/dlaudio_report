@@ -312,7 +312,7 @@ The Dirichlet energy is a measure of the smoothness of a graph signal given by
 \end{equation}
 which is a suitable candidate for regularization \cite{belkin2006manifoldRegularization}.
 %\paragraph{Manifold assumption.}
-The assumption that the representations $\Z$ should be smooth on the similarity graph $\G$ constructed by the training vectors $\X$, usually referred to as the manifold assumption, plays an essential role in various kinds of algorithms including dimensionality reduction algorithms \cite{belkin2001laplacianEigenmaps}, clustering algorithms \cite{ng2002spectralClustering} and semi-supervised learning algorithms \cite{belkin2006manifoldRegularization, zhou2004manifoldRegularization}.
+The assumption that the representations $\Z$ should be smooth on the similarity graph $\G$ constructed by the training vectors $\X$, usually referred to as the manifold assumption\footnote{Because the graph is used as a proxy for the manifold.}, plays an essential role in various kinds of algorithms including dimensionality reduction algorithms \cite{belkin2001laplacianEigenmaps}, clustering algorithms \cite{ng2002spectralClustering} and semi-supervised learning algorithms \cite{belkin2006manifoldRegularization, zhou2004manifoldRegularization}.
 Note that the Euler-Lagrange of the Dirichlet energy is precisely the graph Laplacian.
 % exploit the geometrical information in the data by using the manifold assumption which has been shown effective in classification and clustering tasks \cite{belkin2006manifoldRegularization}.
 
@@ -394,30 +394,10 @@ Our overall model may be thought as an hybrid between a sparse and a denoising a
 
 % Identify parts of the energy functions to equations in regression, e.g. tik, lasso, elastic.
 
-\section{Feature extraction}
-% In the next chapter ? It is not really a part of the model, but a use of it.
-
-Once the auto-encoder parameters (the dictionary $\D$, the encoder $\E$ and the graph Laplacian $\L$) have been learned from training data following  \eqnref{en_encoder}, the model is to be used for feature extraction on unseen data.
-
-Under the complete model \eqnref{en_encoder}, the sparse and structured representation $\z^*$ of a vector $\x$ is given by
-\begin{equation} \label{eqn:z_complete}
-	\z^* = \argmin{\z} \frac{\lambda_d}{2} \normF{\x - \D \z} + \lambda_z \normO{\z} + \frac{\lambda_g}{2} \inner{\z}{\L \z} + \frac{\lambda_e}{2} \normF{\z - \E \x}.
-\end{equation}
-Neglecting some of the terms, the approximation
-\begin{equation} \label{eqn:z_approximate}
-	\z^* = \argmin{\z} \frac{\lambda_e}{2} \normF{\z - \E \x} + \lambda_z \normO{\z}
-\end{equation}
-should infer good enough representations given the model's third assumption. This approximate problem possesses the closed-form solution
-\begin{equation} \label{eqn:z_direct}
-	\z^* = h_{\lambda_e / \lambda_z} (\E \x),
-\end{equation}
-where $h_{\lambda_e / \lambda\z}$ is the soft-thresholding function given by
-\begin{equation}
-	h_{\lambda_e / \lambda_z}(\x)_k = \sgn(x_k) \left( |x_k| - \frac{\lambda_z}{\lambda_e} \right)_+.
-\end{equation}
-The explicit encoder formulation introduced in \secref{encoder} indeed allows a direct inference of the representation.
-
-While the dictionary $\D$ and the graph Laplacian $\L$ are not used in the approximate scheme, they add structure to the problem, which has been shown to enhance the behavior of the loss function \cite{kowalski2009sparse, baraniuk2010modelCS, huang2011LearningStructuredSparsity, jenatton2011structured}.
+%\chapter{Related work} \label{chap:related_work}
+% How do we compare with other auto-encoders ?
+% Sparse: Corresponds to 2 of our terms.
+% Denoising: The manifold terme pushes the samples back to the manifold, effectively denoising the samples.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -473,9 +453,31 @@ One of the most efficient methods is the K-SVD method [28]. The K-SVD is a way t
 
 \subsection{Primal-dual}
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\chapter{Related work} \label{chap:related_work}
-% How do we compare with other auto-encoders ?
-% Sparse: Corresponds to 2 of our terms.
-% Denoising: The manifold terme pushes the samples back to the manifold, effectively denoising the samples.
+
+\chapter{Feature extraction} \label{chap:feature_extraction}
+% In the next chapter ? It is not really a part of the model, but a use of it.
+
+Once the auto-encoder parameters (the dictionary $\D$, the encoder $\E$ and the graph Laplacian $\L$) have been learned from training data following  \eqnref{en_encoder}, the model is to be used for feature extraction on unseen data.
+
+Under the complete model \eqnref{en_encoder}, the sparse and structured representation $\z^*$ of a vector $\x$ is given by
+\begin{equation} \label{eqn:z_exact}
+	\z^* = \argmin{\z} \frac{\lambda_d}{2} \normF{\x - \D \z} + \lambda_z \normO{\z} + \frac{\lambda_g}{2} \inner{\z}{\L \z} + \frac{\lambda_e}{2} \normF{\z - \E \x}.
+\end{equation}
+Neglecting some of the terms, the approximation
+\begin{equation} \label{eqn:z_approximate}
+	\z^* = \argmin{\z} \frac{\lambda_e}{2} \normF{\z - \E \x} + \lambda_z \normO{\z}
+\end{equation}
+should infer good enough representations given the model's third assumption. This approximate problem possesses the closed-form solution
+\begin{equation} \label{eqn:z_direct}
+	\z^* = h_{\lambda_e / \lambda_z} (\E \x),
+\end{equation}
+where $h_{\lambda_e / \lambda\z}$ is the soft-thresholding function given by
+\begin{equation}
+	h_{\lambda_e / \lambda_z}(\x)_k = \sgn(x_k) \left( |x_k| - \frac{\lambda_z}{\lambda_e} \right)_+.
+\end{equation}
+The explicit encoder formulation introduced in \secref{encoder} indeed allows a direct inference of the representation.
+
+While the dictionary $\D$ and the graph Laplacian $\L$ are not used in the approximate scheme, they add structure to the problem, which has been shown to enhance the behavior of the loss function \cite{kowalski2009sparse, baraniuk2010modelCS, huang2011LearningStructuredSparsity, jenatton2011structured}.

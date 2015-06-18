@@ -8,6 +8,7 @@
 \usepackage[top=4cm,bottom=4cm,outer=3cm,inner=4cm]{geometry}
 \usepackage{fancyhdr} \pagestyle{fancy} %\usepackage{lastpage}
 %\usepackage{parskip} \setlength{\parindent}{0em} \setlength{\parskip}{1em}
+\usepackage{fixltx2e}  % For \lagtextsubscript{}.
 \usepackage[colorlinks=true,allcolors=blue]{hyperref} \hypersetup{
 	pdfauthor={Michaël Defferrard},
 	pdftitle={Structured Auto-Encoder},
@@ -30,6 +31,7 @@
 \newacronym{DBN}{DBN}{Deep Belief Network}
 \newacronym{MIR}{MIR}{Music Information Retrieval}
 \newacronym{MGR}{MGR}{Music Genre Recognition}
+\newacronym{MIREX}{MIREX}{Music Information Retrieval Evaluation eXchange}
 \newacronym{PSD}{PSD}{Predictive Sparse Decomposition}
 \newacronym{CQT}{CQT}{Constant-Q Transform}
 \newacronym{LCN}{LCN}{Local Contrast Normalization}
@@ -225,14 +227,21 @@
 
 % What will be presented. Design goal.
 This thesis introduces the \textit{structured auto-encoder}, an auto-encoder variant which preserves the structure of the data while transforming it in a sparse representation. It learns sparse representations that explicitly take into account the local manifold structure of the data.
-The primary goal of the proposed algorithm is unsupervised representation learning toward the goal of features extraction, while being robust to noisy data and fast at features extraction (after the training phase). The quality of the extracted features shall be evaluated through a classification task.
+The primary goal of the proposed algorithm is unsupervised representation learning toward the goal of features extraction, while being robust to noisy data and fast at feature extraction (after the training phase). As the discriminative power of learned representations cannot be directly evaluated, the proposed algorithm shall be evaluated through a classification task.
+We propose an application in \gls{MIR} which consists of retrieving the genre of unknown musical clips. The proposed algorithm 
+
 As we shall see, it has the properties of an hybrid between a sparse auto-encoder \cite{lecun2006sparseAutoencoders, ranzato2007stackedSparseAutoencoders} and a denoising auto-encoder \cite{bengio2008denoisingAutoencoders}.
+
 
 % Plan.
 This thesis is divided in two parts. Through \partref{algorithm},
 %the proposed model is introduced by a motivation in \chapref{motivation}
 some background informations are given in \chapref{background} and the proposed model is
-constructed step by step in \chapref{model}. \chapref{learning} describes how it learns while \chapref{related_work} compares it to existing models. As a testbed of our algorithm's performance, an application to \gls{MGR} is proposed in \partref{application} with a presentation of the problem in \chapref{problem}, our proposed system in \chapref{system} along with some implementation details in \chapref{implementation}. \chapref{results} is dedicated to the presentation of the experimental results.
+constructed step by step in \chapref{model}. A well-posed iterative scheme to solve the resulting non-convex optimization problem is then proposed in \chapref{learning}. That is the way the model is learned. % while \chapref{related_work} compares it to existing models.
+\chapref{feature_extraction} shows how features may be extracted with the learned data model.
+As a testbed of our algorithm's performance, an application to \gls{MGR} is proposed in \partref{application} with a presentation of the problem in \chapref{problem}, our proposed system in \chapref{system} along with some implementation details in \chapref{implementation}. \chapref{results} is dedicated to the presentation of the experimental results.
+
+
 
 This work was accomplished as a Master thesis, which is an integral part of the major in Information Technologies curriculum from the Electrical and Electronic Section of the \gls{EPFL}. It was conducted at the LTS2 laboratory\footnote{The laboratory homepage is accessible at \url{http://lts2www.epfl.ch/}.}.
 
