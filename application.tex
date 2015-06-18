@@ -126,9 +126,14 @@ Although we have not observed meaningful atoms (yet), \cite{lecun2010PSD} showed
 Overcompleteness, defined by the hyper-parameter $m$, must be evaluated by considering the number of code units and the effective dimensionality of the input as given by \gls{PCA}.
 
 \section{Classification accuracy}
+% On the whole dataset, not very good in comparison with others.
 % Measured via 10-fold cross-validation
 % How classification is improved by feature learning, introducing the encoder / graph.
 % Comparison with other techniques.
+
+
+\section{Scarce training set}
+% Il faut juste garder à l'esprit que le graphe (et le dictionnaire) est appris sur le dataset complet. Ça peut cependant être utile si on a beaucoup de données à disposition mais que les labels coûtent chers.
 
 \section{Robustness to noisy data}
 % Final experiement: baseline, graph-less, graph vs noise level
@@ -145,9 +150,9 @@ Overcompleteness, defined by the hyper-parameter $m$, must be evaluated by consi
 			linear SVM & raw audio & 0 \\
 			linear SVM & CQT spectrogram & 0 \\
 			linear SVM & normalized CQT spectrogram & 0 \\
-			linear SVM & features from \eqnref{eqn:basispursuit} & 0 \\
-			linear SVM & features from \eqnref{eqn:minz} & 0 \\
-			linear SVM & features from \eqnref{eqn:extraction} & 0 \\
+			linear SVM & features from \eqnref{basispursuit} & 0 \\
+			linear SVM & features from \eqnref{minz} & 0 \\
+			linear SVM & features from \eqnref{extraction} & 0 \\
 			\hline
 		\end{tabular}
 	\end{center}
@@ -155,4 +160,7 @@ Overcompleteness, defined by the hyper-parameter $m$, must be evaluated by consi
 	\label{tab:accuracy_comparison}
 \end{table}
 
-While our results are not state-of-the-art (yet), depicted in \tabref{accuracy_comparison}; we made the point that our model is useful and that we shall continue to research on it. Higher classification accuracies are probably achievable by fine-tuning the hyper-parameters and introducing further tricks: e.g. by applying a \gls{LCN} to the \gls{CQT} spectrograms or working on individual octaves, two techniques used by \cite{lecun2011PSDaudio}. We may even further improve the performance of our model by creating a better graph, i.e. a graph more adapted to the problem at hand, by fine-tuning the hyper-parameters.
+While our results did not attain the state-of-the-art (yet) in \gls{MGR} on GTZAN, depicted in \tabref{accuracy_comparison};
+we demonstrated the usefulness of an important property of the proposed model: the conservation of the structure in the data, which allows the system to be robust to noisy data as well as being able to generalize with a very scarce training set.
+%we made the point that our model is useful and that we shall continue to research on it.
+Higher classification accuracies are probably achievable by fine-tuning the hyper-parameters and introducing further tricks: e.g. by applying a \gls{LCN} to the \gls{CQT} spectrograms or working on individual octaves, two techniques used by \cite{lecun2011PSDaudio}. We may even further improve the performance of our model by creating a better graph, i.e. a graph more adapted to the problem at hand, by fine-tuning the hyper-parameters.

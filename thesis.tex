@@ -35,6 +35,7 @@
 \newacronym{LCN}{LCN}{Local Contrast Normalization}
 \newacronym{SVM}{SVM}{Support Vector Machine}
 \newacronym{RIP}{RIP}{Restricted Isometry Property}
+\newacronym{MP}{MP}{Matching Pursuit}
 \newacronym{BP}{BP}{Basis Pursuit}
 \newacronym{FISTA}{FISTA}{Fast Iterative Shrinkage-Thresholding Algorithm}
 \newacronym{ADMM}{ADMM}{Alternating Direction Method of Multipliers}
@@ -72,6 +73,8 @@
 \newcommand{\normF}[1]{\| #1 \|_\text{F}^2}
 \newcommand{\inner}[2]{\langle #1 , #2 \rangle}
 \renewcommand{\L}{\mathbf{L}}
+\newcommand{\I}{\mathbf{I}}
+\newcommand{\A}{\mathbf{A}}
 \newcommand{\D}{\mathbf{D}}
 \newcommand{\E}{\mathbf{E}}
 \newcommand{\X}{\mathbf{X}}
@@ -84,11 +87,12 @@
 \newcommand{\eps}{\mathbf{\epsilon}}
 \newcommand{\gam}{\mathbf{\Gamma}}
 \newcommand{\Eone}{E_1(\Z, \D)}
-\newcommand{\Etwo}{E_2(\Z, \D, \E)}
+\newcommand{\Etwo}{E_2(\Z, \D)}
 \newcommand{\Ethree}{E_3(\Z, \D, \E)}
 \newcommand{\Xx}{\mathcal{X}}
 \newcommand{\G}{\mathcal{G}}
 \newcommand{\V}{\mathcal{V}}
+\newcommand{\W}{\mathbf{W}}
 \newcommand{\set}[2]{\{#1_i\}_{i=1}^#2}
 \newcommand{\st}{\text{ s.t. }}
 \newcommand{\cst}[2]{\|#1_#2\|_2 \leq 1}
@@ -217,17 +221,18 @@
 % Why learned features instead of hand-crafted features ?
 %\section{Supervised vs unsupervised}
 % Explain the difference. Why do we want unsupervised ?
-%\section{Feature / representation learning}
-% NN is well suited for representation learning
-% We want unsupervised feature learning vs supervised vs hand-crafted
-% Representation learning
-% Learning Distributed Representations: Bengio learning deep ai
+
 
 % What will be presented. Design goal.
-This thesis introduces the \textit{structured auto-encoder}, an auto-encoder variant which keeps the structure of the data while transforming it in another representation. As we shall see, it has the properties of an hybrid between a sparse auto-encoder \cite{lecun2006sparseAutoencoders, ranzato2007stackedSparseAutoencoders} and a denoising auto-encoder \cite{bengio2008denoisingAutoencoders}. The primary goal of the proposed algorithm is unsupervised representation learning toward the goal of feature extractions, while being robust to noisy data and fast at feature extraction (after the training phase). The quality of the extracted features shall be evaluated through a classification task.
+This thesis introduces the \textit{structured auto-encoder}, an auto-encoder variant which preserves the structure of the data while transforming it in a sparse representation. It learns sparse representations that explicitly take into account the local manifold structure of the data.
+The primary goal of the proposed algorithm is unsupervised representation learning toward the goal of features extraction, while being robust to noisy data and fast at features extraction (after the training phase). The quality of the extracted features shall be evaluated through a classification task.
+As we shall see, it has the properties of an hybrid between a sparse auto-encoder \cite{lecun2006sparseAutoencoders, ranzato2007stackedSparseAutoencoders} and a denoising auto-encoder \cite{bengio2008denoisingAutoencoders}.
 
 % Plan.
-This thesis is divided in two parts. Through \partref{algorithm}, the proposed model is introduced by a motivation in \chapref{motivation} and constructed step by step in \chapref{model}. \chapref{learning} describes how it learns while \chapref{related_work} compares it to existing models. As a testbed of our algorithm's performance, an application to \gls{MGR} is proposed in \partref{application} with a presentation of the problem in \chapref{problem}, our proposed system in \chapref{system} along with some implementation details in \chapref{implementation}. \chapref{results} is dedicated to the presentation of the experimental results.
+This thesis is divided in two parts. Through \partref{algorithm},
+%the proposed model is introduced by a motivation in \chapref{motivation}
+some background informations are given in \chapref{background} and the proposed model is
+constructed step by step in \chapref{model}. \chapref{learning} describes how it learns while \chapref{related_work} compares it to existing models. As a testbed of our algorithm's performance, an application to \gls{MGR} is proposed in \partref{application} with a presentation of the problem in \chapref{problem}, our proposed system in \chapref{system} along with some implementation details in \chapref{implementation}. \chapref{results} is dedicated to the presentation of the experimental results.
 
 This work was accomplished as a Master thesis, which is an integral part of the major in Information Technologies curriculum from the Electrical and Electronic Section of the \gls{EPFL}. It was conducted at the LTS2 laboratory\footnote{The laboratory homepage is accessible at \url{http://lts2www.epfl.ch/}.}.
 
