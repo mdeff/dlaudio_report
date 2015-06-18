@@ -3,7 +3,21 @@
 
 \chapter{Problem} \label{chap:problem}
 % Explain the problem we aim at solving: recognizing musical genre while being robust for e.g. deployement on a smartphone which may well be in a noisy environment.
+
+The \gls{MGR} problem is the task of automatically recognizing the musical genre of an unknown audio clip given a set of labeled clips. A clip is unknown in the sense that only the raw audio is available, there is no access to any meta-data.
+
 We think that this problem satisfies the hypothesizes we made in 
+
+\section{Dataset}
+% The curious case of the GTZAN dataset 
+
+The system's performance is to be tested on GTZAN\footnote{Available at http://marsyasweb.appspot.com/download/data\_sets/}, the most used public dataset in \gls{MGR} \cite{sturm2014survey} which was created by Tzanetakis and Cook for their work on automatic \gls{MGR} \cite{tzanetakis2002GTZAN}. It consists of 1000 30-second audio clips (all truncated to $660000$ samples to not bias the classifier in any way) with 100 examples in each of 10 different categories: blues, classical, country, disco, hiphop, jazz, metal, pop, reggae and rock. All clips are sampled at 22050 Hz.
+
+While the composition and integrity of the dataset has been disputed \cite{sturm2012GTZANanalysis}, it remains the most commonly used benchmark.
+
+\section{Performance evaluation}
+
+While the classification accuracy does not say all about \gls{MGR}, it proved useful for comparison purposes and is easy to asses.
 
 %\section{Genres}
 % How we can qualitatively distinguish genres.
@@ -23,11 +37,16 @@ We think that this problem satisfies the hypothesizes we made in
 % Visual diagram: pre-processing, feature extraction, post-processing, classification, voting
 % Inspyred by [ref lecun] which uses sparse auto-encoders.
 
-The design of the system is inspired by \cite{lecun2011PSDaudio} which uses sparse auto-encoders for the same task.
+The design of the genre recognition system is inspired by \cite{lecun2011PSDaudio}, which uses a layer of sparse auto-encoder to learn sparse representations of audio spectrograms targeted at \gls{MGR}. Although they call their encoder technique \gls{PSD} \cite{lecun2010PSD}, it is effectively a sparse auto-encoder \cite{bengio2009learningDeepAI}. The structured auto-encoder developed in \partref{algorithm} generalizes their loss function as an energy function and introduces a structuring term (\secref{manifold_learning}). A well-posed iterative scheme to solve the resulting non-convex optimization problem was proposed in \chapref{learning}.
 
-Similarly to us, the authors of \cite{lecun2011PSDaudio} used a layer of sparse auto-encoder to learn sparse representations of audio spectrograms. They introduced a technique called \gls{PSD} to quickly infer an approximation of the sparse codes \cite{lecun2010PSD}, which is effectively a sparse auto-encoder.
+The system mainly consists of three independent blocs:
+\begin{enumerate}
+	\item \textbf{Preprocessing}, whose goal is to transform the raw audio clips into spectrograms. Slicing the spectrograms in short time frames provides time invariance while the spectrograms bring higher-level features built on prior knowledge about audio signals, it  an hand-crafted features.
+	\item \textbf{Features extraction}: spectrogram slices, which provide time invariance, are given as input vectors to the proposed structured auto-encoder who transforms them into a sparse and structured representation.
+	\item \textbf{Classification}: the extracted features are used for genre classification after a post-processing step analog to feature pooling. The accuracy is assessed by a cross-validation scheme.
+\end{enumerate}
 
-The structuring auto-encoder developed in \partref{algorithm} generalizes their loss function as an energy function and introduces a structuring term. We also introduced a well-posed iterative scheme to solve the resulting non-convex optimization problem in \chapref{learning}.
+{\color{red} figure}
 
 \section{Pre-processing}
 % Frames, CQT, LCN, feature / sample normalization
@@ -48,6 +67,8 @@ The structuring auto-encoder developed in \partref{algorithm} generalizes their 
 % Multi-class: one-vs-one / one-vs-the-rest
 
 \subsection{Feature aggregation}
+% Analog to feature pooling.
+% Goal: change of time scale.
 
 \subsection{Support Vector Machine}
 % Small introduction to SVM.
@@ -72,7 +93,7 @@ The structuring auto-encoder developed in \partref{algorithm} generalizes their 
 
 \section{Design}
 
-\section{Performance}
+\section{Performance} \label{sec:performance}
 
 \subsection{Algorithm}
 % FISTA vs PD implementation
@@ -100,6 +121,13 @@ The structuring auto-encoder developed in \partref{algorithm} generalizes their 
 
 % All the simulations on a reduced dataset because of computation time.
 % Only one simulation on the full set for comparison with others. So without noise, with graph.
+The iterative optimization scheme presented in \chapref{learning} is, by definition, rather computationally heavy. Despite having been sped up by an order of magnitude already (see \secref{performance}), it is still quite sub-optimal from a computational point-of-view. As the algorithm itself is still a prototype, we did not want to invest too much time to further optimize its implementation. For this reason, the following experiments where all conducted on a subset of the dataset.
+
+Furthermore, the classification accuracy was measured on individual frames, i.e. before majority voting, rather than on whole clip. The rational is to capture the confidence about the class of a clip. Another positive impact is the reduction of the variance caused by the increased number of samples.
+
+The first presented result shows that the sparse and structured representation extracted from the spectrograms by the structured auto-encoder defined in \partref{algorithm} is indeed more discriminative than the spectrograms in a classification task.
+
+The second experiment shows that structured representations are robust to noise.
 
 \section{Spectrograms}
 % Show example spectrograms of jazz / blues. Show how they are different (music theory) and can such be distinguished.
@@ -110,6 +138,10 @@ The structuring auto-encoder developed in \partref{algorithm} generalizes their 
 %Via music theory, we know that music is constructed via some building blocks, e.g.
 
 Although we have not observed meaningful atoms (yet), \cite{lecun2010PSD} showed that when dictionaries where trained on individual octaves, they discovered harmonics, chords and harmonies without any prior about music theory.
+
+\section{Convergence analysis}
+
+The encoder fidelity sub-objective is 2 orders of magnitude lower than the other sub-objectives, which suggests that the addition of the encoder does not alter the features extracted via the complete scheme defined by \eqnref{pr_encoder}.
 
 \section{Descriptive feature vectors}
 % Show aggregated feature vectors for some genres.

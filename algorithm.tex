@@ -373,10 +373,10 @@ where $\e_k$ are the columns of $\E$. %Again, the $\ell_1$ penalty $\normO{\E \X
 \paragraph{Energy.}
 While it is often a good idea to control the energy, the constraint on the columns of $\E$ is not needed in practice. While the columns of $\D$ are constrained to a norm smaller than one, they are in practice normalized because of the $\normO{\Z}$ objective. The energy of a vector transformed by $\D$ does thus not change, which means that the inferred sparse code $\z_i$ as the same energy as its corresponding vector $\x_i$. The encoder does then not need to add energy and will have a column norm smaller than one, even without the constraint. It has been verified empirically.
 
-\newpage
 \section{Energy-based formulation} \label{sec:energy_formulation}
 % energy-based model
 % Why energy ?
+% Comparison with LeCun PSD. Or in related work ?
 
 % Finish with the complete objective function.
 % Why energy function ? Many laws of nature are nothing but optimality conditions, often expressed in terms of a minimum energy principle.
@@ -393,6 +393,32 @@ While it is often a good idea to control the energy, the constraint on the colum
 Our overall model may be thought as an hybrid between a sparse and a denoising auto-encoder.
 
 % Identify parts of the energy functions to equations in regression, e.g. tik, lasso, elastic.
+
+\section{Feature extraction}
+% In the next chapter ? It is not really a part of the model, but a use of it.
+
+Once the auto-encoder parameters (the dictionary $\D$, the encoder $\E$ and the graph Laplacian $\L$) have been learned from training data following  \eqnref{en_encoder}, the model is to be used for feature extraction on unseen data.
+
+Under the complete model \eqnref{en_encoder}, the sparse and structured representation $\z^*$ of a vector $\x$ is given by
+\begin{equation} \label{eqn:z_complete}
+	\z^* = \argmin{\z} \frac{\lambda_d}{2} \normF{\x - \D \z} + \lambda_z \normO{\z} + \frac{\lambda_g}{2} \inner{\z}{\L \z} + \frac{\lambda_e}{2} \normF{\z - \E \x}.
+\end{equation}
+Neglecting some of the terms, the approximation
+\begin{equation} \label{eqn:z_approximate}
+	\z^* = \argmin{\z} \frac{\lambda_e}{2} \normF{\z - \E \x} + \lambda_z \normO{\z}
+\end{equation}
+should infer good enough representations given the model's third assumption. This approximate problem possesses the closed-form solution
+\begin{equation} \label{eqn:z_direct}
+	\z^* = h_{\lambda_e / \lambda_z} (\E \x),
+\end{equation}
+where $h_{\lambda_e / \lambda\z}$ is the soft-thresholding function given by
+\begin{equation}
+	h_{\lambda_e / \lambda_z}(\x)_k = \sgn(x_k) \left( |x_k| - \frac{\lambda_z}{\lambda_e} \right)_+.
+\end{equation}
+The explicit encoder formulation introduced in \secref{encoder} indeed allows a direct inference of the representation.
+
+While the dictionary $\D$ and the graph Laplacian $\L$ are not used in the approximate scheme, they add structure to the problem, which has been shown to enhance the behavior of the loss function \cite{kowalski2009sparse, baraniuk2010modelCS, huang2011LearningStructuredSparsity, jenatton2011structured}.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
