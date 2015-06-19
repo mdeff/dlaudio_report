@@ -1,10 +1,12 @@
 \part{Application} \label{part:application}
 % Apply the developed algorithm to a problem, MGR in our case.
 
-\chapter{Problem} \label{chap:problem}
+\chapter{Music genre recognition} \label{chap:MGR}
 % Explain the problem we aim at solving: recognizing musical genre while being robust for e.g. deployement on a smartphone which may well be in a noisy environment.
 
-\gls{MGR} is a common task for \gls{MIR} and is the usual task for the yearly \gls{MIREX}\footnote{\url{http://www.music-ir.org/mirex/wiki/MIREX_HOME}}. The \gls{MGR} problem is the task of automatically recognizing the musical genre of an unknown audio clip given a set of labeled clips. A clip is unknown in the sense that only the raw audio is available, there is no access to any meta-data.
+\section{Problem formulation}
+
+Music genre recognition (MGR) is a common task for \gls{MIR} and is the usual task for the yearly \gls{MIREX}\footnote{\url{http://www.music-ir.org/mirex/wiki/MIREX_HOME}}. The \gls{MGR} problem is the task of automatically recognizing the musical genre of an unknown audio clip given a set of labeled clips. A clip is unknown in the sense that only the raw audio is available, and there is no access to any meta-data.
 
 %\section{Performance evaluation}
 The accuracy of the classified clips is used as a proxy for the discriminative power of the learned representations.
@@ -12,10 +14,10 @@ The accuracy of the classified clips is used as a proxy for the discriminative p
 
 \section{Dataset}
 
-The system's performance is to be evaluated on GTZAN\footnote{Available at \url{http://marsyasweb.appspot.com/download/data\_sets/}.}, the most-used public dataset for evaluation in machine listening research for \gls{MGR} \cite{sturm2014survey} which was created by Tzanetakis and Cook for their work in the domain \cite{tzanetakis2002GTZAN}. It consists of 1000 30-second audio clips (all truncated to $660000$ samples to not bias the classifier in any way) with 100 examples in each of 10 different categories: blues, classical, country, disco, hiphop, jazz, metal, pop, reggae and rock. All clips are sampled at 22050 Hz.
+The system's performance is evaluated on GTZAN\footnote{Available at \url{http://marsyasweb.appspot.com/download/data\_sets/}.}, the most-used public dataset for evaluation in machine listening research for \gls{MGR} \cite{sturm2014survey} which was created by Tzanetakis and Cook for their work in the domain in 2002 \cite{tzanetakis2002GTZAN}. It consists of 1000 30-second audio clips (all truncated to $660,000$ samples to not bias the classifier in any ways) with 100 examples in each of 10 different categories: blues, classical, country, disco, hiphop, jazz, metal, pop, reggae and rock. All clips are sampled at 22,050 Hz.
 
 % nuit-blanche.blogspot.ch/2013/12/the-curious-case-of-gtzan-dataset.html
-The composition and integrity of the dataset has been analyzed in \cite{sturm2012GTZANanalysis}. It is known that the dataset contains recurrent faults: repetitions, mislabelings, and distortions. These faults obviously challenge the interpretability of any result derived using it. \cite{sturm2013GTZANcritic} goes even further and disprove the claims that all \gls{MGR} systems are affected in the same ways by these faults, and that the performances of \gls{MGR} systems in GTZAN, working with the same data and faults, are still meaningfully comparable.
+The composition and integrity of the dataset has been analyzed in \cite{sturm2012GTZANanalysis}. It is known that the dataset contains recurrent faults: repetitions, mislabelings, and distortions. These faults obviously challenge the interpretability of any result derived using it. The work \cite{sturm2013GTZANcritic} goes even further and disprove the claims that all \gls{MGR} systems are affected in the same ways by these faults, and that the performances of \gls{MGR} systems in GTZAN, working with the same data and faults, are still meaningfully comparable.
 %Our results are however only compared to themselves, making these critics essentially irrelevant.
 
 %\section{Genres}
@@ -36,32 +38,30 @@ The composition and integrity of the dataset has been analyzed in \cite{sturm201
 % Visual diagram: pre-processing, features extraction, post-processing, classification, voting
 % Inspyred by [ref lecun] which uses sparse auto-encoders.
 
-The design of the genre recognition system is inspired by \cite{lecun2011PSDaudio}, which uses a layer of sparse auto-encoder to learn sparse representations of audio spectrograms targeted at \gls{MGR}. Although they call their encoder technique \gls{PSD} \cite{lecun2010PSD}, it is effectively a sparse auto-encoder \cite{bengio2009learningDeepAI}. The structured auto-encoder developed in \partref{algorithm} generalizes their loss function as an energy function and introduces a structuring term (\secref{manifold_learning}).
+The design of the genre recognition system is inspired by the work \cite{lecun2011PSDaudio}, which uses a layer of sparse auto-encoder to learn sparse representations of audio spectrograms targeted at \gls{MGR}. Although they call their encoder technique \gls{PSD} \cite{lecun2010PSD}, it is effectively a sparse auto-encoder \cite{bengio2009learningDeepAI}. The structured auto-encoder proposed and developed in \partref{algorithm} generalizes the loss function of \cite{lecun2011PSDaudio} as an energy function and introduces a graph-based structuring term (\secref{manifold_learning}).
 
-The system mainly consists of three independent building blocs:
+The system mainly consists of three independent building blocks:
 \begin{enumerate}
-	\item \textbf{Preprocessing}, whose goal is to transform the raw audio signal into a time-frequency representation. It is essentially a first feature extraction pass, built on prior knowledge about signal processing and audio signals in particular. The spectrograms are further sliced in short time frames to provide time invariance.
-	\item \textbf{Feature extraction}: the set of spectrogram slices is given as input vectors to the proposed structured auto-encoder who transforms them into a sparse and structured representation.
+	\item \textbf{Preprocessing}: the goal is to transform the raw audio signal into a time-frequency representation. It is essentially a first feature extraction pass, built on prior knowledge about signal processing and audio signals in particular. The spectrograms are further sliced in short time frames to provide time invariance.
+	\item \textbf{Feature extraction}: the set of spectrogram slices is given as input vectors to the proposed structured auto-encoder which transforms them into a sparse and structured representations.
 	\item \textbf{Classification}: the extracted features are used for genre classification after a post-processing step analog to feature pooling. The accuracy is assessed by a cross-validation scheme.
 \end{enumerate}
-
-{\color{red} system figure}
 
 \section{Preprocessing} \label{sec:preprocessing}
 % Frames, CQT, LCN, features / sample scaling.
 % A LCN may further increase the accuracy [ref LeCun].
 
 \paragraph{Frames.}
-Each clip is divided into short frames of $n_a = 1024$ samples, which roughly corresponds to 46 ms of raw audio, in order to provide translation invariance. A 50\% overlap between consecutive frames introduces redundancy in the data. The GTZAN dataset is thus decomposed in $N=1288000$ frames of dimensionality $n_a = 1024$.
+Each clip is divided into short frames of $n_a = 1024$ samples, which roughly corresponds to 46 ms of raw audio, in order to provide translation invariance. A 50\% overlap between consecutive frames introduces redundancy in the data. The GTZAN dataset is thus decomposed in $N=1,288,000$ frames of dimensionality $n_a = 1024$.
 
 \paragraph{\gls{CQT}.}
 % Spectrogram with geometrically spaced frequencies.
 A spectral representation of each of those frames is computed via the \gls{CQT} with $n_s=96$ filters spanning four octaves from C\textsubscript{2} to C\textsubscript{6} at quarter-tone resolution, where C\textsubscript{4} is the middle C in the scientific pitch notation \cite{young1939ScientificPitch}. The A440 tuning standard sets A\textsubscript{4} = 440 Hz \cite{A440std}.
 
 Apart from the constant quality factor, i.e. a constant frequency over bandwidth ratio, an important property of the \gls{CQT} is that the center frequencies of the filters are logarithmically spaced, so that consecutive notes in the musical scale are linearly spaced.
-This transform is generally well suited to musical data: (i) the logarithm scale requires fewer frequency bins to cover a given range effectively, which proves useful when frequencies span several octaves. (ii) It mirrors the human auditory system, whereby at lower frequencies spectral resolution is better, whereas temporal resolution improves at higher frequencies. (iii) The harmonics of musical notes form a pattern characteristic of the timbre of the instrument: as the fundamental frequency changes, the relative position of these harmonics remains constant.
+This transform is generally well suited to musical data: (i) the logarithm scale requires fewer frequency bins to cover a given range effectively, which proves useful when frequencies span several octaves, (ii) it mirrors the human auditory system, whereby at lower frequencies spectral resolution is better, whereas temporal resolution improves at higher frequencies, and (iii) the harmonics of musical notes form a pattern characteristic of the timbre of the instrument; as the fundamental frequency changes, the relative position of these harmonics remains constant.
 
-This step is an intelligent dimensionality reduction from $n_a = 1024$ to $n_s = 96$. Intelligent in the sense that it extracts useful features, as demonstrated by the baseline experiment (\secref{spectrograms}).
+This step is an efficient dimensionality reduction from $n_a = 1024$ to $n_s = 96$. It is efficient in the sense that it extracts useful features, as demonstrated by the baseline experiment. See \secref{spectrograms}.
 
 The implementation uses \textit{librosa}\footnote{Available at \url{https://github.com/bmcfee/librosa/}.}, a Python library which implements an efficient algorithm proposed by the authors of \cite{schorkhuber2010CQTtoolbox}. An efficient and accurate implementation of the necessary sample rate conversion is provided by \textit{libsamplerate}\footnote{Available at \url{http://www.mega-nerd.com/SRC/index.html}.}.
 
@@ -69,19 +69,19 @@ The implementation uses \textit{librosa}\footnote{Available at \url{https://gith
 A subtractive and divisive \gls{LCN}, described in \cite{lecun2010LCN}, may then be applied to the spectrograms in order to enhance the contrast.
 Consider a point in the spectrogram and its neighborhood along both the time and frequency axes weighted by a Gaussian window. First, the average of the weighted neighborhood is subtracted from each point (the subtractive part). Then, each point is divided by the standard deviation of its new weighted neighborhood (the divisive part).
 
-The technique enforces competition between neighboring points in the spectrogram, so that low-energy signals are amplified while high-energy ones are muted. The entire process can be seen as a simple form of \gls{AGC}. It tries to inverse the heat diffusion, similarly to a shock filter \cite{osher1990shockFilters}. The idea of contrast normalization is inspired by visual neuroscience models \cite{lyu2008LCNneuro1, pinto2008LCNneuro2}.
+The technique enforces competition between neighboring points in the spectrogram, so that low-energy signals are amplified while high-energy ones are muted. The entire process can be seen as a simple form of \gls{AGC}. It acts as an inverse heat diffusion operator, similarly to a shock filter \cite{osher1990shockFilters}. The idea of contrast normalization is inspired by visual neuroscience models \cite{lyu2008LCNneuro1, pinto2008LCNneuro2}.
 
 \paragraph{Scaling.}
-The range of the independent variables is finally rescaled in $[0,1]$ to eliminate any bias toward features who have a broad range of values. Each feature then contributes approximately proportionately to the distance between two features vectors. Another commonly used scaling method is standardization: the independent variables are rescaled to have zero-mean and unit-variance. Yet another method is to rescale each features vector to unit length, which usually means dividing each component by the Euclidean length of the vector.
+The range of the independent variables is finally rescaled in $[0,1]$ to eliminate any bias toward features who have a broad range of values. Each feature then contributes approximately proportionally to the distance between two features vectors. Another commonly used scaling method is standardization: the independent variables are rescaled to have zero-mean and unit-variance. Yet another method is to rescale each features vector to unit length, which usually means dividing each component by the Euclidean length of the vector.
 
 \section{Feature extraction}
 % Most accurate extraction with original model.
 % Much faster approximations by ignoring some terms of the objective.
 
-In a transductive learning paradigm \cite{vapnik1998transductiveLearning}, the auto-encoder model (\chapref{model}) is trained on the entire dataset (which includes the training and test sets without labels). Under this paradigm, test samples are known in advance, and the system is simply asked to produce labels for them. This paradigm was chosen for speed reasons: since training is computationally expensive, it is best done only once per experiment. The training phase is essentially the application of the algorithm presented in \chapref{optimization} to solve \eqnref{model} over the whole dataset. A structured and sparse representation is readily available for each spectrogram of the dataset, they are a by-product of model fitting.
+In a transductive learning paradigm \cite{vapnik1998transductiveLearning}, the auto-encoder model (\chapref{model}) is trained on the entire dataset (which includes the training and test sets without labels). Under this paradigm, test samples are known in advance, and the system is simply asked to produce labels for them. This paradigm was chosen for speed and accuracy reasons: since training is computationally expensive, it is best done only once per experiment. The training phase is essentially the application of the algorithm presented in \chapref{optimization} to solve \eqnref{model} over the whole dataset. A structured and sparse representation is readily available for each spectrogram of the dataset, they are a by-product of model fitting.
 
 Note that while that paradigm is used for this application, the algorithm proposed in \partref{algorithm} is still purely unsupervised, i.e. it makes no use of the training labels.
-Note also that while the system was designed for transductive learning, it can act in a supervised learning way. A predictive model was built during training, and, using the learned parameters, a representation for a previously unknown spectrogram may be inferred with \eqnref{z_exact} or \eqnref{z_direct}.
+Note also that while the system was designed for transductive learning, it can also act in a supervised way. A predictive model was built during training, and, using the learned parameters, a representation for a previously unknown spectrogram may be inferred with \eqnref{z_exact} or \eqnref{z_direct}.
 
 The optimization scheme presented in \chapref{model} is implemented with the PyUNlocBoX\footnote{Available at \url{https://github.com/epfl-lts2/pyunlocbox}.}, an open-source Python convex optimization toolbox developed and maintained by ourselves. The toolbox has been enhanced by the needs of this project, e.g. its memory footprint has been greatly reduced.
 The FLANN library \cite{muja2009flann} is used for a fast approximate k-nearest neighbors search, used to construct the graph as described in \secref{manifold_learning}.
@@ -94,13 +94,13 @@ The FLANN library \cite{muja2009flann} is used for a fast approximate k-nearest 
 Aggregate features are computed for each song by summing up the frame-level features over 5-second time windows overlapping by half, which has been found to substantially improve classification performance \cite{bergstra2006aggregateFeatures, hamel2010aggregateFeatures}. Since each sparse code records which dictionary elements are present in a given \gls{CQT} frame, these aggregate features vectors can be thought of as histograms recording the number of occurrences of each dictionary element in the time window.
 
 \paragraph{\gls{SVM}.}
-Aggregate features are then classified by a \gls{SVM} \cite{cortes1995SVM}, which is a non-probabilistic binary linear classifier. It was chosen because it is fast to train and scale well to large datasets (thanks to the few support vectors), which is an important consideration in \gls{MIR}.
+Aggregate features are then classified by \gls{SVM} \cite{cortes1995SVM}, which is a non-probabilistic binary linear classifier. It was chosen because it is fast to train and scale well to large datasets (thanks to the few support vectors), which is an important consideration in \gls{MIR}.
 
 In a one-vs-the-rest strategy to multi-class classification, \gls{SVM} basically constructs a set of maximum-margin hyperplanes which separate a class from all the others. The alternative approach to multi-class, one-vs-one, requires to train one classifier per pair of class.
 
 The implementation uses the \textit{scikit-learn} Python framework \cite{sklearn} which provides wrappers to \textit{libsvm} \cite{libsvm} and \textit{liblinear} \cite{liblinear}, two independent implementations of the \gls{SVM}. We observed no significant variations between the two.
 
-\paragraph{Majority voting}
+\paragraph{Majority voting.}
 % Voting further gives a cheap 
 The genre prediction for a clip is given by a majority vote between the 12 aggregate features. Instead of using it in a winner-take-all fashion, this information could be exploited as a confidence level about the chosen class.
 
@@ -183,7 +183,7 @@ Classifications with \gls{CQT} spectrograms will be our baseline for further exp
 \begin{figure}[ht]
 	\centering
 	\includegraphics[width=9cm]{img/dictionary}
-	\caption[]{A learned dictionary.}
+	\caption[]{$m=128$ atoms of a learned dictionary of spectrograms.}
 	\label{fig:dictionary}
 \end{figure}
 
@@ -193,7 +193,7 @@ Classifications with \gls{CQT} spectrograms will be our baseline for further exp
 \begin{figure}[ht]
 	\centering
 	\includegraphics[width=\textwidth]{img/sparse_representations}
-	\caption[]{A learned representation, which is indeed sparse.}
+	\caption[]{A learned sparse representation of spectrograms.}
 	\label{fig:sparse_representations}
 \end{figure}
 
@@ -292,10 +292,11 @@ Finally, the sparse and structured representations are robust with respect to no
 \section{Discussion}
 % Is the model appropriate for the problem ?
 
-While our results are far from the state-of-the-art in \gls{MGR} on GTZAN, we demonstrated the usefulness of an important property of the proposed model: the conservation of the structure in the data. When compared to a sparse auto-encoder, it always leads to a better accuracy, especially in a noisy scenario, when the structure is the most helpful.
+%While our results are far from the state-of-the-art in \gls{MGR} on GTZAN,
+Our experiments demonstrated the usefulness of an important property of the proposed model: the conservation of the structure in the data via graph regularization. When compared to a sparse auto-encoder, it always leads to a better accuracy, especially in a noisy scenario, when the structure is the most helpful.
 %hich allows the system to be robust to noisy data.
 
-We showed experimentally that two assumptions of the model (\secref{assumptions}) are indeed true: the learned representations are sparse (\figref{sparse_representations}) and structured.
+We experimentally confirmed two assumptions of our model (\secref{assumptions}): the learned representations are sparse (\figref{sparse_representations}) and structured.
 %we made the point that our model is useful and that we shall continue to research on it.
 
-Higher classification accuracies are probably achievable by fine-tuning the hyper-parameters and introducing further tricks: e.g. by applying a \gls{LCN} to the \gls{CQT} spectrograms or working on individual octaves, two techniques used by \cite{lecun2011PSDaudio}. We may even further improve the performance of our model by creating a better graph, i.e. a graph more adapted to the problem at hand, by tuning the construction hyper-parameters.
+Higher classification accuracies are probably achievable by fine-tuning the hyper-parameters and introducing adding further complexity; e.g. by applying a \gls{LCN} to the \gls{CQT} spectrograms or working on individual octaves, two techniques used by \cite{lecun2011PSDaudio}. We may even further improve the performance of our model by creating better graphs, i.e. graphs more suited to the problem at hand, for example by tuning the construction hyper-parameters.

@@ -192,12 +192,12 @@
 
 \pagestyle{empty}
 \begin{abstract}
-	In this work, we present a technique to learn discriminative audio features for \gls{MIR} in an unsupervised and hierarchical way. We introduce a novel deep architecture composed by (stacks of) structured sparse auto-encoders which leverage on the recent advances of deep learning using efficient auto-encoder strategy that simultaneously learned sparse representation of inputs and dictionary adapted to those inputs. Our main goal is to find a solution to sparse coding that is structured by the proximities of the sparse features encoded by a graph of audio inputs. We borrow ideas from manifold learning to constrain our solution to be smooth on this graph, i.e. to have a small Dirichlet energy, in order to implicitly force feature proximities. Our auto-encoder model is formulated as a non-convex optimization problem, for which a {\color{red}well-posed} iterative scheme is provided. We show that the learned features combined with a simple linear classifier achieve {\color{red}110\%} accuracy in predicting genres on GTZAN.
+	In this work, we introduce a novel auto-encoder architecture which leverages on the recent advances of deep learning using an efficient auto-encoder strategy that simultaneously learns sparse representation of inputs and dictionary adapted to those inputs. Our main goal is to find a solution to sparse coding that is structured by the proximities of the sparse features encoded by a graph of audio inputs. We borrow ideas from manifold learning to constrain our solution to be smooth on this graph, i.e. to have a small Dirichlet energy, in order to implicitly force feature proximities. Our auto-encoder model is formulated as a non-convex optimization problem, for which a well-posed iterative scheme is provided.
 \end{abstract}
 
 \renewcommand{\abstractname}{Acknowledgements}
 \begin{abstract}
-	I would first like to thank Dr. Xavier Bresson for his dedicated day-to-day supervision, which included a weekly meeting during which we discussed the achieved results and debated new ideas. He further provided me with many inputs, intuitions and references, which were very helpful to clarify some concepts. Finally, I want to thank him for his review of this manuscript.
+	I would first like to thank Dr. Xavier Bresson for his dedicated day-to-day supervision, which included a weekly meeting during which we discussed the achieved results and debated new ideas. He further provided me with many inputs, intuitions and references, which were very helpful to clarify some concepts. Finally, I want to thank him for his review of parts of this manuscript.
 
 	I would also like to thank Johan Paratte for his helpful intuitions at the beginning of the project and his advices on how to structure the thesis.
 
@@ -231,8 +231,7 @@ This thesis introduces the \textit{structured auto-encoder}, an auto-encoder var
 The primary goal of the proposed algorithm is unsupervised representation learning toward the goal of feature extraction, while being robust to noisy data and fast at feature extraction (after the training phase). As the discriminative power of learned representations cannot be directly evaluated, the proposed algorithm shall be evaluated through a classification task.
 We propose an application in \gls{MIR} which consists of retrieving the genre of unknown musical clips. The proposed algorithm 
 
-As we shall see, it has the properties of an hybrid between a sparse auto-encoder \cite{lecun2006sparseAutoencoders, ranzato2007stackedSparseAutoencoders} and a denoising auto-encoder \cite{bengio2008denoisingAutoencoders}.
-
+%As we shall see, it has the properties of an hybrid between a sparse auto-encoder \cite{lecun2006sparseAutoencoders, ranzato2007stackedSparseAutoencoders} and a denoising auto-encoder \cite{bengio2008denoisingAutoencoders}.
 
 % Plan.
 This thesis is divided in two parts. Through \partref{algorithm},
@@ -267,22 +266,25 @@ This manuscript is available on GitHub, git revision ***
 \addcontentsline{toc}{chapter}{Conclusion}
 % Discussion of our results. Strengths and weaknesses of our method.
 
-% Working on this project has been very exciting all along. It is very enjoyable to work on real world problematic. Also the balance between a theoretical research part and its corresponding implementation allows to understand what are the practical issues and compromises to be taken when implementing very nice theoretical concepts and at the same time to empirically assess its validity.
+In this work we introduced a novel auto-encoder architecture, which characteristic is to learn sparse and structured representation of input data, borrowing ideas from sparse coding and manifold learning. It learns sparse representations that explicitly take into account the local manifold structure of the data.
+
+The model is formulated as a non-convex optimization problem, for which a well-posed iterative scheme was provided.
+
+The experimental results on music genre recognition showed that our model extracted more discriminant features than sparse auto-encoders.
 
 \section*{Future work}
 \addcontentsline{toc}{section}{Future work}
 % Split future work on the algorithm and on the application ?
 % Only about algorithm ?
 
-\paragraph{Encoder.}
+\paragraph{Direct encoder.}
 % Verify the hypothesis
-It remains to be shown that the features extracted with the approximate scheme \eqnref{z_direct} is equivalent to those extracted with the exact scheme \eqnref{z_exact}.
-The third assumption about the existence of such an encoder has to be verified experimentally. %Previous work in the direction however suggests that is should exist.
+Our model's third assumption about the existence of a direct encoder (\secref{assumptions}) has to be verified experimentally. It remains to be shown that the features extracted with the approximate scheme \eqnref{z_direct} are equivalent to those extracted with the exact scheme \eqnref{z_exact}. Previous work in the direction however suggests that this assumption is reasonable and that such an encoder should exist.
 
-\paragraph{TV norm.}
+%\paragraph{TV norm.}
 % TV norm on the graph instead of Dirichlet energy
 
-\paragraph{Distributed implementation.}
+%\paragraph{Distributed implementation.}
 % Details ?
 % Train chunks of D / Z via independant threads.
 % Directly in the PyUNLocBoX ?
@@ -290,7 +292,8 @@ The third assumption about the existence of such an encoder has to be verified e
 % Why ATLAS does not do it by default ? OpenBLAS does it.
 % Move to GPU.
 
-\paragraph{Multiple layers.}
+%\paragraph{Multiple layers.}
+%In the spirit of stacked auto-encoders
 % Multiple layers of auto-encoders
 % In spite of deep learning methods
 % Reference to DBN: stacks of RBM, Stacked auto-encoders.

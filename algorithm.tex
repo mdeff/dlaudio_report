@@ -383,13 +383,13 @@ While it is often a good idea to control the energy, the constraint on the colum
 \paragraph{Energy formulation.}
 The energy function \eqnref{en_encoder}, which defines our model, may be rewritten as a sum of functions of the variables $\Z$, $\D$ and $\E$ as follows:
 \begin{equation} \label{eqn:objective}
+	E(\Z, \D, \E) =
 	\underbrace{\frac{\lambda_d}{2} \normF{\X - \D \Z}}_{\fd} +
 	\underbrace{\lambda_z \normO{\Z}}_{\fz} +
 	\underbrace{\frac{\lambda_g}{2} \tr(\Z^T \L \Z)}_{\fg} +
 	\underbrace{\frac{\lambda_e}{2} \normF{\Z - \E \X}}_{\fe}.
 \end{equation}
-An advantage of the energy formulation is that it is easy to control the relative importance of the sub-objectives, whether they are fidelity or prior terms. As seen through this chapter, the model is easily constructed by sequentially adding terms to the objective. They are as easily removed, or muted, when experimentations require it.
-{\color{red} Other advantages of energy ?}
+An advantage of energetic formulations is that it is easy to control the relative importance of the sub-objectives, whether they are fidelity or prior terms. As seen through this chapter, the model can be easily constructed by sequentially adding terms to the objective. They are as easily removed, or muted, when experimentations require it. Other advantages include good understanding, robustness, existence of solutions, design and analysis of optimization algorithms.
 
 \paragraph{Auto-encoder model.}
 Training the model is akin to minimize the objective function \eqnref{objective} over the variables, or model parameters $\Z$, $\D$ and $\E$:
@@ -398,14 +398,12 @@ Training the model is akin to minimize the objective function \eqnref{objective}
 	\minimize{\Z,\D,\E} \fd + \fz + \fg + \fe \\
 	\st \cst{\d}{i} ,\ \cst{\e}{k} ,\ \forallx{i}{m} ,\ \forallx{k}{n}.
 \end{multline}
-Posing the problem as the minimization of an objective function is a clean expression of the model. Indeed, many laws of nature are nothing but optimality conditions, often expressed in terms of a minimum energy principle.
+Posing the problem as the minimization of an objective function is a sound expression of the model. Indeed, many laws of nature are nothing but optimality conditions, often expressed in terms of a minimum energy principle.
 
 Note that the regularizations $\fz$ and $\fg$ on the internal representation are preventing the auto-encoder to learn the identity $\D = \E = \I$.
 
-{\color{red} Image with input x and hidden z. Output is y=sh(Ex). Weight matrices are D and E with sh() activation function. Approximately.}
-
 \paragraph{Encoder.}
-The proposed model is indeed an auto-encoder. Given its hyper-parameters $\lambda_d, \lambda_z, \lambda_g, \lambda_e \geq 0$ and a training set $\X$, model \eqnref{model} learns the auto-encoder variables, i.e. the dictionary $\D$ and the encoder $\E$. Then, given $\D$ and $\E$, the sparse and structured internal representation $\z^*$ of an unseen sample $\x$ is given by
+The proposed model is an auto-encoder. Given its hyper-parameters $\lambda_d, \lambda_z, \lambda_g, \lambda_e \geq 0$ and a training set $\X$, model \eqnref{model} learns the auto-encoder variables, i.e. the dictionary $\D$ and the encoder $\E$. Then, given $\D$ and $\E$, the sparse and structured internal representation $\z^*$ of an unseen sample $\x$ is given by
 \begin{equation} \label{eqn:z_exact}
 	\z^* = \argmin{\z} \frac{\lambda_d}{2} \normT{\x - \D \z} + \lambda_z \normO{\z} + \frac{\lambda_g}{2} \inner{\z}{\L \z} + \frac{\lambda_e}{2} \normT{\z - \E \x},
 \end{equation}
@@ -446,7 +444,7 @@ Although we care less about decoder \eqnref{x_exact}, a similar approach may be 
 	\tilde{\x} = \argmin{\x} \frac{\lambda_d}{2} \normT{\x - \D \z} = \D \z.
 \end{equation}
 
-\chapter{Related work}
+\chapter{Related works}
 % That is clearly not a part of the model.
 % How do we compare with other auto-encoders ?
 % Our overall model may be thought as an hybrid between a sparse and a denoising auto-encoder.
@@ -482,9 +480,9 @@ Denoising auto-encoders share the same model as the standard auto-encoders, but 
 % Three properties of non-convex optimization: monotony (of the energy function), convergence (local, global, critical points) and speed. Convergence is hard to prove.
 
 The whole process of training the auto-encoder is to solve the non-convex optimization problem which defines model \eqnref{model}. Because of its non-convexity, there is no guarantee to find its global minimum.
-{\color{red} But there is techniques for non-convex optime like "Global Optimization Using Interval Analysis". Slower ?}
-The minimization will end up in a local minimum in the neighborhood of its initialization. Given the same training data, a random initialization of the variables will almost surely lead to a different solution for every run.
-{\color{red} Is there anything we can say about good enough local minima ? Or that many local minima are actually similar and we don't care in which we fall ?}
+%While there exist techniques for non-convex optimization, they are very slow.
+The minimization will end up in a local minimum depending on the initialization. That is, given the same training data, different random initializations of the variables will lead to different solutions.
+%{\color{red} Is there anything we can say about good enough local minima ? Or that many local minima are actually similar and we don't care in which we fall ?}
 
 \paragraph{Convex sub-problems.}
 As problem \eqnref{model} is non-convex only when all the variables are taken together, a natural way is to decompose it into three convex sub-problems:
@@ -499,8 +497,7 @@ As problem \eqnref{model} is non-convex only when all the variables are taken to
 Sub-problem \eqnref{minZ} is an $\ell_1$ and $\ell_2$ regularized least squares problem while sub-problems \eqnref{minD} and \eqnref{minD} are constrained least squares problems. Both of which can efficiently be solved by several convex optimization methods \cite{combettes2011proximalSplitting, beck2009FISTA, chambolle2011PrimalDual}.
 
 \paragraph{Iterative scheme.}
-The idea is to iteratively solve \eqnref{minZ}, \eqnref{minD} and \eqnref{minE}, i.e. to minimize the objective for one variable at a time while fixing the two others.
-{\color{red} While we have no convergence guarantee, the overall loss function is guaranteed to decrease monotonically if each convex sub-problem is optimally solved [?ref?], which is the case if we let each sub-minimization converge.}
+The idea is to iteratively solve \eqnref{minZ}, \eqnref{minD} and \eqnref{minE}, i.e. to minimize the objective for one variable at a time while fixing the two others. While we have no convergence guarantee, the overall loss function is guaranteed to decrease monotonically if each convex sub-problem is optimally solved, which is the case if we let each sub-minimization converge.
 
 \paragraph{Proximal splitting.}
 Proximal splitting methods are a class of algorithms designed to solve convex problems of the form
@@ -534,7 +531,7 @@ The \gls{FISTA} \cite{beck2009FISTA} is an efficient forward-backward scheme whi
 \paragraph{Sub-problems casting.}
 To be solved via \gls{FISTA}, each of the minimization sub-problems \eqnref{minZ}, \eqnref{minD} and \eqnref{minE} has to be cast to the form of \eqnref{convex_prob} and provide the gradient $\nabla f_2$, its Lipschitz constant $\beta$ and the proximity operator of $f_1$.
 
-Sub-problem \eqnref{minZ} is split in a smooth and non-smooth part:
+Sub-problem \eqnref{minZ} is split into a smooth and a non-smooth part:
 \begin{equation}
 	\minimize{\Z} \underbrace{\fd + \fg + \fe}_{f_2(\Z)} + \underbrace{\fz}_{f_1(\Z)}.
 \end{equation}
