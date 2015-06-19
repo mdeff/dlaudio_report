@@ -76,7 +76,7 @@ This chapter presents the proposed structured auto-encoder. Built on linear regr
 % Xavier: needs to be improved.
 
 \paragraph{Sparse representation.}
-We make the hypothesis that a set of sample signals drawn from the same distribution can be sparsely represented in some frame\footnote{A frame of a vector space is a set of vectors which may be linearly dependent. It is a generalization of a basis.}. Each signal should be approximately reconstructed by a linear combinations of a few atoms from a suitable dictionary. As we shall see, this dictionary may be adaptive and learned directly from the data. Many approaches have been developed to achieve sparse representations, e.g. sparse \gls{PCA} \cite{aspremont2007sparsePCA}, sparse NMF \cite{hoyer2004sparseNMF}. Sparse coding \cite{olshausen1996SparseV1, mairal2008sparseCoding} is however the most popular one. Sparsity has become a concept of great interest recently, not only in machine learning but also in statistics and signal processing, in particular with the work on \gls{CS} \cite{candes2005CS, donoho2006CS}.
+We make the hypothesis that a set of sample signals drawn from the same distribution can be sparsely represented in some frame\footnote{A frame of a vector space is a set of vectors which may be linearly dependent. It is a generalization of a basis.}. Each signal should be approximately reconstructed by a linear combinations of a few atoms from a suitable dictionary. As we shall see, this dictionary may be adaptive and learned directly from the data. Many approaches have been developed to achieve sparse representations, e.g. sparse \gls{PCA} \cite{aspremont2007sparsePCA}, sparse NMF \cite{hoyer2004sparseNMF}, K-SVD \cite{aharon2006KSVD}. Sparse coding \cite{olshausen1996SparseV1, mairal2008sparseCoding} is however the most popular one. Sparsity has become a concept of great interest recently, not only in machine learning but also in statistics and signal processing, in particular with the work on \gls{CS} \cite{candes2005CS, donoho2006CS}.
 % There is a huge body of literature on sparse coding and compressed sensing to support this hypothesis.
 % --> sparse coding.
 
@@ -430,11 +430,11 @@ Neglecting some of the terms in \eqnref{z_exact} because of our model's third as
 \end{equation}
 is able to infer good enough representations. Problem \eqnref{z_approximate} holds a closed-form solution:
 \begin{equation} \label{eqn:z_direct}
-	\tilde{\z} = h_{\lambda_e / \lambda_z} (\E \x),
+	\tilde{\z} = h_{\lambda_z / \lambda_e} (\E \x),
 \end{equation}
-where $h_{\lambda_e / \lambda\z}$ is the soft-thresholding function defined here by
-\begin{equation}
-	h_{\lambda_e / \lambda_z}(\x)_k = \sign(x_k) \left( |x_k| - \frac{\lambda_z}{\lambda_e} \right)_+ ,
+where $h_\lambda$ is the shrinkage function defined here by
+\begin{equation} \label{eqn:shrinkage}
+	h_\lambda(\x)_k = \sign(x_k) \left( |x_k| - \lambda \right)_+ ,
 \end{equation}
 where $(\cdot)_+ = \max(\cdot, 0)$. Therefore, the explicit encoder formulation introduced in \secref{encoder} allows a direct inference of the representation.
 
@@ -479,53 +479,122 @@ Denoising auto-encoders share the same model as the standard auto-encoders, but 
 % Why we can use FISTA an PD ?
 % Derive FISTA and primal-dual formulations.
 
-The whole process of training the auto-encoder is to solve the non-convex optimization problem \eqnref{model}. Because of its non-convexity, there is no guarantee to find its global minimum. The minimization will end up in the closest local minimum of the neighborhood of its initialization. Given the same training data, a random initialization will lead to a different solution at every run.
+% Three properties of non-convex optimization: monotony (of the energy function), convergence (local, global, critical points) and speed. Convergence is hard to prove.
+
+The whole process of training the auto-encoder is to solve the non-convex optimization problem which defines model \eqnref{model}. Because of its non-convexity, there is no guarantee to find its global minimum.
+{\color{red} But there is techniques for non-convex optime like "Global Optimization Using Interval Analysis". Slower ?}
+The minimization will end up in a local minimum in the neighborhood of its initialization. Given the same training data, a random initialization of the variables will almost surely lead to a different solution for every run.
 {\color{red} Is there anything we can say about good enough local minima ? Or that many local minima are actually similar and we don't care in which we fall ?}
 
+\paragraph{Convex sub-problems.}
+As problem \eqnref{model} is non-convex only when all the variables are taken together, a natural way is to decompose it into three convex sub-problems:
+\begin{align}
+	\label{eqn:minZ}
+	\minimize{\Z} & \fd + \fz + \fg + \fe , \\
+	\label{eqn:minD}
+	\minimize{\D} & \fd \st \cst{\d}{i} ,\ \forallx{i}{m} , \\
+	\label{eqn:minE}
+	\minimize{\E} & \fe \st \cst{\e}{k} ,\ \forallx{k}{n}.
+\end{align}
+Sub-problem \eqnref{minZ} is an $\ell_1$ and $\ell_2$ regularized least squares problem while sub-problems \eqnref{minD} and \eqnref{minD} are constrained least squares problems. Both of which can efficiently be solved by several convex optimization methods \cite{combettes2011proximalSplitting, beck2009FISTA, chambolle2011PrimalDual}.
 
+\paragraph{Iterative scheme.}
+The idea is to iteratively solve \eqnref{minZ}, \eqnref{minD} and \eqnref{minE}, i.e. to minimize the objective for one variable at a time while fixing the two others.
+{\color{red} While we have no convergence guarantee, the overall loss function is guaranteed to decrease monotonically if each convex sub-problem is optimally solved [?ref?], which is the case if we let each sub-minimization converge.}
 
-As \eqnref{model} is non-convex only when all the variables are taken together, a natural way of solving is to iteratively optimize the objective for one variable at a time while fixing the others, which are convex sub-problems. {\color{red}It as been shown that if every sub-problem is optimally solved, the global objective monotonically converges.}
-
-\begin{equation}
-	\minimize{\d_i} \underbrace{\frac{\lambda_d}{2} \normF{\X^T - \z_i^T \d_i^T}}_{f(\d_i^T)} + \underbrace{\iota_C(\d_i)}_{g(\d_i^T)} , \forallx{i}{m}
+\paragraph{Proximal splitting.}
+Proximal splitting methods are a class of algorithms designed to solve convex problems of the form
+\begin{equation} \label{eqn:convex_prob}
+	\minimize{\x} f_1(\x) + f_2(\x),
 \end{equation}
+where $f_1$ is a convex but non-smooth function and $f_2$ is convex and differentiable with a $\beta$-Lipschitz continuous gradient $\nabla f_2$, i.e.,
+\begin{equation}
+	\forall(\x,\y) \ \ \|\nabla f_2(\x) - \nabla f_2(\y) \|_2 \leq \beta \| \x - \y \|_2 ,
+\end{equation}
+where $\beta \in \ ]0,+\infty[$.
 
+It can be shown \cite{combettes2005forwardBackward} that problem \eqnref{convex_prob} admits at least one solution and that, for any $\gamma \in \ ]0,+\infty[$, its solutions are characterized by the fixed point equation
+\begin{equation} \label{eqn:fixed_point}
+	x = \prox{\gamma f_1} \left( \x - \gamma \nabla f_2(\x) \right),
+\end{equation}
+where $\prox{f}$ denotes the proximity operator of $f$, defined as the minimization problem
+\begin{equation}
+	\prox{f} \x = \minimize{\y} f(\y) + \frac{1}{2} \normT{\x - \y},
+\end{equation}
+which is an extension of the notion of a projection operator \cite{moreau1962prox}.
+The fixed point equation \eqnref{fixed_point} suggests the possibility of iterating
+\begin{equation}
+	\x^{t+1} = \underbrace{\prox{\gamma_t f_1}}_\text{backward step} \underbrace{ \left( \x^t - \gamma \nabla f_2(\x^t) \right) }_\text{forward step}
+\end{equation}
+for values of the step-size parameter $\gamma_t$ in a suitable bounded interval which depends on $\beta$. This type of scheme is known as a \textit{forward-backward} splitting algorithm. It can be broken up into a forward (explicit) gradient
+step using the function $f_2$, and a backward (implicit) step using the function $f_1$ \cite{combettes2011proximalSplitting}.
 
+The \gls{FISTA} \cite{beck2009FISTA} is an efficient forward-backward scheme which exploits variable time steps and multiple points. It achieves an optimal \cite{nemirovsky1983optimalConvergence} $O(1/t^2)$ rate of convergence of the objective function.
 
-% An alternative for the dictionary part.
-One of the most efficient methods is the K-SVD method [28]. The K-SVD is a way to learn a dictionary, instead of exploiting standard bases as described previously, that leads to sparse representations for the data. This algorithm uses ei- ther orthogonal matching pursuit (OMP) or basis pursuit (BP), as part of its iterative procedure for learning the dictionary.
+\paragraph{Sub-problems casting.}
+To be solved via \gls{FISTA}, each of the minimization sub-problems \eqnref{minZ}, \eqnref{minD} and \eqnref{minE} has to be cast to the form of \eqnref{convex_prob} and provide the gradient $\nabla f_2$, its Lipschitz constant $\beta$ and the proximity operator of $f_1$.
 
-\section{Convex problem}
+Sub-problem \eqnref{minZ} is split in a smooth and non-smooth part:
+\begin{equation}
+	\minimize{\Z} \underbrace{\fd + \fg + \fe}_{f_2(\Z)} + \underbrace{\fz}_{f_1(\Z)}.
+\end{equation}
+The gradient $\nabla f_2$, its Lipschitz constant $\beta$ and the proximity operator of $f_1$ are as follows:
+\begin{align}
+	\nabla f_2(\Z) &= \lambda_d \D^T (\X - \D \Z) + \lambda_e (\Z - \E \X) + \lambda_g \L \Z \\
+	\beta &\geq \lambda_e + \lambda_d \| \D^T \D \|_2 + \lambda_g \|\L\|_2 \\
+	\prox{\beta^{-1} f_1}(\D) &= h_{\lambda_z / \beta} (\Z)
+\end{align}
+where $h_\lambda$ is the shrinkage function \eqnref{shrinkage}.
+
+The constraint of \eqnref{minD} can be integrated in the loss function via the Lagrange multiplier method:
+\begin{equation}
+	\minimize{\D} \underbrace{\frac{\lambda_d}{2} \normF{\X^T - \Z^T\D^T}}_{f_2(\D)} + \underbrace{\iota_C(\D)}_{f_1(\D)},
+\end{equation}
+where $\iota_C$ is the indicator function of the subset $C \in \R^{n \times m}$ defined as
+\begin{equation}
+	\iota_C(\D) = \left\{ \begin{array}{rl}
+	0, & \text{if } \cstd; \\
+	+\infty, & \text{otherwise}.
+	\end{array}\right.
+\end{equation}
+The gradient $\nabla f_2$, its Lipschitz constant $\beta$ and the proximity operator of $f_1$ are as follows:
+\begin{align}
+	\nabla f_2(\D) &= \lambda_d \Z (\X^T - \Z^T \D^T) \\
+	\beta &\geq \lambda_d \| \Z \Z^T \|_2 \\
+	\prox{\beta^{-1} f_1}(\D) &= \left\{ \frac{\d_i}{\max(1, \|\d_i\|_2)} \right\}_{i=1}^m.
+\end{align}
+
+Similarly, for \eqnref{minE}:
+\begin{align}
+	\nabla f_2(\E) &= \lambda_e \X (\Z^T - \X^T \E^T) \\
+	\beta &\geq \lambda_e \| \X \X^T \|_2 \\
+	\prox{\beta^{-1} f_1}(\E) &= \left\{ \frac{\e_k}{\max(1, \|\e_k\|_2)} \right\}_{k=1}^n.
+\end{align}
+
+%\section{Algorithm}
+% How to write algorithms (with a frame) in Latex ?
+
+%Given the hyper-parameters $\lambda_d \geq 0$, $\lambda_z \geq 0$, $\lambda_g \geq 0$, $\lambda_e \geq 0$ and a training set $\X \in \R^{n \times N}$.
+
+%\paragraph{Initialization}
+%Randomly initialize $\D$ and rescale each column to unit-norm to satisfy the constraint of problem \eqnref{model}. Initialize $\Z$ to zero. % sparse enough, cannot practically init to full because of mem.
+
+%\section{Convex problem}
 % What is a convex problem (objective and constraints).
 % Methods to solve: analytically or numerical schemes.
-
-\section{Numerical solvers}
+%\section{Numerical solvers}
 % Numerical: gradient descent --> slow --> second order methods like Newton
 % Stochastic gradient descent
-
-\section{Proximal splitting methods}
+%\section{Proximal splitting methods}
 % But our objective function is not differentiable
 % Ridge regression is, but not the LASSO regularization.
 % --> rely on a sub-gradient method, the proximity / proximal operator --> proximal splitting
-
-\subsection{Forward-backward}
+%\subsection{Forward-backward}
 % Different basic methods to solve these problems: forward-backward, douglas-rachford
 % Explain the intuition
-
-\subsection{Douglas-Rachford}
-
-\subsection{FISTA}
+%\subsection{Douglas-Rachford}
+%\subsection{FISTA}
 % Advanced (faster) algorithms who exlpoit variable time steps and multiple points: FISTA
-
-\section{Dual problem}
+%\section{Dual problem}
 % Introducing the dual problem (paper playing with duality)
-
-\subsection{Primal-dual}
-
-\section{Optimization algorithm}
-% How to write algorithms (with a frame) in Latex ?
-
-Given the hyper-parameters $\lambda_d \geq 0$, $\lambda_z \geq 0$, $\lambda_g \geq 0$, $\lambda_e \geq 0$ and a training set $\X \in \R^{n \times N}$.
-
-\paragraph{Initialization}
-Randomly initialize $\D$ and rescale each column to unit-norm to satisfy the constraint of problem \eqnref{model}. Initialize $\Z$ to zero. % sparse enough, cannot practically init to full because of mem.
+%\subsection{Primal-dual}

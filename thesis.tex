@@ -64,11 +64,13 @@
 \newcommand{\R}{\mathbb{R}}
 \DeclareMathOperator*{\argminop}{arg\,min}
 \DeclareMathOperator*{\minimizeop}{minimize}
+\DeclareMathOperator*{\proxop}{prox}
 \DeclareMathOperator*{\sign}{sign}
 \DeclareMathOperator*{\tr}{tr}
 \DeclareMathOperator*{\spanning}{span}
 \newcommand{\argmin}[1]{\argminop\limits_{#1}}
-\newcommand{\minimize}[1]{\minimizeop\limits_{#1}}  % or \min
+\newcommand{\minimize}[1]{\minimizeop\limits_{#1} \ }  % or \min
+\newcommand{\prox}[1]{\text{prox}_{#1}}
 \newcommand{\normT}[1]{\| #1 \|_2^2}
 \newcommand{\normO}[1]{\| #1 \|_1}
 \newcommand{\normZ}[1]{\| #1 \|_0}
@@ -250,6 +252,8 @@ As a testbed of our algorithm's performance, an application to \gls{MGR} is prop
 This work was accomplished as a Master thesis, which is an integral part of the major in Information Technologies curriculum from the Electrical and Electronic Section of the \gls{EPFL}. It was conducted at the LTS2 laboratory\footnote{The laboratory homepage is accessible at \url{http://lts2www.epfl.ch/}.}.
 
 While the project was ongoing, I continuously published my thoughts, observations, findings, experiments, results and plans as well as a summary of the weekly meetings with my supervisors on an online blog\footnote{My research blog is available at \url{https://lts2research.epfl.ch/blog/mdeff/}.} in the format of an open laboratory notebook. In the spirit of open research, the code as well as all the results, this report and the ongoing paper are versioned with git and available online through GitHub\footnote{My GitHub account can be found at \url{https://github.com/mdeff}.}. Some continuation of this work shall be submitted to the 41st IEEE \gls{ICASSP}. We may also aim at a journal paper at the end of the project.
+
+This manuscript is available on GitHub, git revision ***
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
