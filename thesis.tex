@@ -1,20 +1,24 @@
-\documentclass[a4paper,12pt,twoside]{report}
+\documentclass[a4paper,12pt,oneside]{report}
 
 \usepackage[T1]{fontenc} \usepackage{lmodern} \usepackage[utf8]{inputenc}
 \usepackage[english]{babel} \usepackage{csquotes}
 \usepackage{float} \usepackage{graphicx,subcaption}
 \usepackage{amssymb,amsmath} \usepackage{siunitx}
 \usepackage[style=numeric,backend=biber]{biblatex} \bibliography{refs}
-\usepackage[top=4cm,bottom=4cm,outer=3cm,inner=4cm]{geometry}
+\usepackage[top=4cm,bottom=4cm,right=4cm,left=4cm,headheight=15pt]{geometry}
+%\usepackage[top=4cm,bottom=4cm,outer=3cm,inner=4cm]{geometry}
 \usepackage{fancyhdr} \pagestyle{fancy} %\usepackage{lastpage}
 %\usepackage{parskip} \setlength{\parindent}{0em} \setlength{\parskip}{1em}
 \usepackage{fixltx2e}  % For \lagtextsubscript{}.
-\usepackage[colorlinks=true,allcolors=blue]{hyperref} \hypersetup{
+\usepackage[colorlinks=true,allcolors=black]{hyperref} \hypersetup{
 	pdfauthor={Michaël Defferrard},
 	pdftitle={Structured Auto-Encoder},
 	pdfsubject={Master Thesis in Information Technologies}
 }
 
+\fancyhead[L]{\nouppercase{\leftmark}}
+\fancyhead[R]{}
+\fancyfoot[C]{\thepage}
 %\lhead{Audio Classification with Structured Deep Learning} \chead{} \rhead{}
 %\cfoot{-- \thepage --}
 
@@ -111,21 +115,6 @@
 \newcommand{\fg}{f_g(\Z)}
 \newcommand{\fe}{f_e(\Z, \E)}
 
-\newcommand*{\blankpage}{
-	\thispagestyle{empty}
-	\vspace*{\fill}
-	\begin{center}
-		\textit{This page is intentionally left blank.}
-	\end{center}
-	\vspace{\fill}
-}
-\makeatletter
-\renewcommand*{\cleardoublepage}{\clearpage\if@twoside \ifodd\c@page\else
-	\blankpage
-	\newpage
-	\if@twocolumn\hbox{}\newpage\fi\fi\fi
-}
-\makeatother
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -189,32 +178,38 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% No new page for the abstract in report class.
+\def\abstract{
+	\vfil
+	\begin{center}
+		{\bfseries \abstractname\vspace{-.5em}}
+	\end{center}
+	\quotation
+}
+\def\endabstract{\par
+	\endquotation
+}
 
-\cleardoublepage
+\pagestyle{empty}
 \begin{abstract}
 	In this work, we present a technique to learn discriminative audio features for \gls{MIR} in an unsupervised and hierarchical way. We introduce a novel deep architecture composed by (stacks of) structured sparse auto-encoders which leverage on the recent advances of deep learning using efficient auto-encoder strategy that simultaneously learned sparse representation of inputs and dictionary adapted to those inputs. Our main goal is to find a solution to sparse coding that is structured by the proximities of the sparse features encoded by a graph of audio inputs. We borrow ideas from manifold learning to constrain our solution to be smooth on this graph, i.e. to have a small Dirichlet energy, in order to implicitly force feature proximities. Our auto-encoder model is formulated as a non-convex optimization problem, for which a {\color{red}well-posed} iterative scheme is provided. We show that the learned features combined with a simple linear classifier achieve {\color{red}110\%} accuracy in predicting genres on GTZAN.
 \end{abstract}
 
-\cleardoublepage
 \renewcommand{\abstractname}{Acknowledgements}
 \begin{abstract}
-	Xavier for day-to-day supervision. Many inputs, intuitions and references. Discussion of the results and proof reading of the thesis. Invaluable comments on this report. % picky
-	
-	Johan for intuitions at the start of the project, advices and proof reading of the thesis.
-	
-	Pierre
-	%C’est grâce à vous que je suis satisfait de conclure ce travail éternellement inachevé par cette petite note personnelle dans une langue que je chéris beaucoup.
-	
+	I would first like to thank Dr. Xavier Bresson for his dedicated day-to-day supervision, which included a weekly meeting during which we discussed the achieved results and debated new ideas. He further provided me with many inputs, intuitions and references, which were very helpful to clarify some concepts. Finally, I want to thank him for his review of this manuscript.
+
+	I would also like to thank Johan Paratte for his helpful intuitions at the beginning of the project and his advices on how to structure the thesis.
+
+	Finally, I would like to thank Prof. Pierre Vandergheynst which has made this very interesting project possible. Thanks to him and this project, I've learned much more that the content of this thesis.
 \end{abstract}
 
-%\clearpage
-%\setcounter{page}{2}
-\cleardoublepage
 \tableofcontents
+\pagestyle{fancy}
 
-\printglossaries
+%\printglossaries
 %\addcontentsline{toc}{chapter}{Glossary}
-\addcontentsline{toc}{chapter}{Acronyms}
+%\addcontentsline{toc}{chapter}{Acronyms}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -270,6 +265,8 @@ This manuscript is available on GitHub, git revision ***
 \addcontentsline{toc}{chapter}{Conclusion}
 % Discussion of our results. Strengths and weaknesses of our method.
 
+% Working on this project has been very exciting all along. It is very enjoyable to work on real world problematic. Also the balance between a theoretical research part and its corresponding implementation allows to understand what are the practical issues and compromises to be taken when implementing very nice theoretical concepts and at the same time to empirically assess its validity.
+
 \section*{Future work}
 \addcontentsline{toc}{section}{Future work}
 % Split future work on the algorithm and on the application ?
@@ -316,8 +313,8 @@ The third assumption about the existence of such an encoder has to be verified e
 % Incorporate some domain knowledge about the dictionary via priors. Then it's not supervised anymore.
 % Priors on the dictionary who are not necessarily domain specific, i.e. are general enough to apply to other kind of data.
 
-\printbibliography
 \addcontentsline{toc}{chapter}{References}
+\printbibliography
 
 %\chapter*{Annexes}
 %\addcontentsline{toc}{chapter}{Annexes}
