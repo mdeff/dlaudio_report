@@ -51,7 +51,7 @@
 \newacronym{NLDR}{NLDR}{Non-Linear Dimensionality Reduction}
 \newacronym{SOM}{SOM}{Self-Organizing Map}
 \newacronym{LLE}{LLE}{Locally-Linear Embedding}
-\newacronym{OLS}{OLS}{Ordinary least squares}
+\newacronym{OLS}{OLS}{Ordinary Least Squares}
 
 \newcommand{\partref}[1]{Part~\ref{part:#1}}
 \newcommand{\chapref}[1]{Chapter~\ref{chap:#1}}
@@ -64,7 +64,7 @@
 \newcommand{\R}{\mathbb{R}}
 \DeclareMathOperator*{\argminop}{arg\,min}
 \DeclareMathOperator*{\minimizeop}{minimize}
-\DeclareMathOperator*{\sgn}{sgn}
+\DeclareMathOperator*{\sign}{sign}
 \DeclareMathOperator*{\tr}{tr}
 \DeclareMathOperator*{\spanning}{span}
 \newcommand{\argmin}[1]{\argminop\limits_{#1}}
@@ -104,6 +104,10 @@
 \newcommand{\cstd}{\cst{\d}{i}, \ \forallx{i}{m}}
 \newcommand{\cste}{\cst{\e}{k}, \ \forallx{k}{n}}
 \newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\fd}{f_d(\Z, \D)}
+\newcommand{\fz}{f_z(\Z)}
+\newcommand{\fg}{f_g(\Z)}
+\newcommand{\fe}{f_e(\Z, \E)}
 
 \newcommand*{\blankpage}{
 	\thispagestyle{empty}
@@ -227,7 +231,7 @@
 
 % What will be presented. Design goal.
 This thesis introduces the \textit{structured auto-encoder}, an auto-encoder variant which preserves the structure of the data while transforming it in a sparse representation. It learns sparse representations that explicitly take into account the local manifold structure of the data.
-The primary goal of the proposed algorithm is unsupervised representation learning toward the goal of features extraction, while being robust to noisy data and fast at feature extraction (after the training phase). As the discriminative power of learned representations cannot be directly evaluated, the proposed algorithm shall be evaluated through a classification task.
+The primary goal of the proposed algorithm is unsupervised representation learning toward the goal of feature extraction, while being robust to noisy data and fast at feature extraction (after the training phase). As the discriminative power of learned representations cannot be directly evaluated, the proposed algorithm shall be evaluated through a classification task.
 We propose an application in \gls{MIR} which consists of retrieving the genre of unknown musical clips. The proposed algorithm 
 
 As we shall see, it has the properties of an hybrid between a sparse auto-encoder \cite{lecun2006sparseAutoencoders, ranzato2007stackedSparseAutoencoders} and a denoising auto-encoder \cite{bengio2008denoisingAutoencoders}.
@@ -237,8 +241,8 @@ As we shall see, it has the properties of an hybrid between a sparse auto-encode
 This thesis is divided in two parts. Through \partref{algorithm},
 %the proposed model is introduced by a motivation in \chapref{motivation}
 some background informations are given in \chapref{background} and the proposed model is
-constructed step by step in \chapref{model}. A well-posed iterative scheme to solve the resulting non-convex optimization problem is then proposed in \chapref{learning}. That is the way the model is learned. % while \chapref{related_work} compares it to existing models.
-\chapref{feature_extraction} shows how features may be extracted with the learned data model.
+constructed step by step in \chapref{model}, which is the core of this work. A well-posed iterative scheme to solve the resulting non-convex optimization problem is then proposed in \chapref{optimization}. That is the way the model is learned. % while \chapref{related_work} compares it to existing models.
+\secref{approximate_schemes} shows how features may be extracted with the learned data model.
 As a testbed of our algorithm's performance, an application to \gls{MGR} is proposed in \partref{application} with a presentation of the problem in \chapref{problem}, our proposed system in \chapref{system} along with some implementation details in \chapref{implementation}. \chapref{results} is dedicated to the presentation of the experimental results.
 
 
@@ -269,7 +273,7 @@ While the project was ongoing, I continuously published my thoughts, observation
 
 \paragraph{Encoder.}
 % Verify the hypothesis
-It remains to be shown that the features extracted with the approximate scheme
+It remains to be shown that the features extracted with the approximate scheme \eqnref{z_direct} is equivalent to those extracted with the exact scheme \eqnref{z_exact}.
 The third assumption about the existence of such an encoder has to be verified experimentally. %Previous work in the direction however suggests that is should exist.
 
 \paragraph{TV norm.}

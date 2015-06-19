@@ -13,6 +13,7 @@
 % We want unsupervised feature learning vs supervised vs hand-crafted
 % Representation learning
 % Learning Distributed Representations: Bengio learning deep ai
+% Representation Learning: A Review and New Perspectives
 
 \section{Neural networks}
 % Why ? Distributed representation and computation (e.g. training on GPU, clusters) --> much what symbolic AI is not (mainly search algorithms, SAT solvers)
@@ -66,8 +67,10 @@ One strategy is to add noise in the encoding. The denoising auto-encoder thus mi
 % Step by step construction: sparse coding, dictionary learning, encoder learning, manifold learning.
 % Xavier: maybe not useful as it is just the enumeration of the sub-titles of chapter 2 --> give instead a global motivation.
 
+This chapter presents the proposed structured auto-encoder. Built on linear regression, the model increases in complexity as desired properties about its internal representation are progressively integrated in the form of regularizations.
+
 % Plan.
-This chapter presents the proposed structured auto-encoder. \secref{assumptions} states the assumptions of the model. \secref{linear_regression} reviews the basics of linear regression, the foundation of our model. \secref{sparse_coding} introduces sparse coding, \secref{dictionary_learning} introduces a trainable dictionary and \secref{manifold_learning} introduces manifold learning. Last but not least, \secref{encoder} introduces the trainable encoder. Finally, \secref{energy_formulation} reviews the whole energy-based formulation and brings some new insights.
+%This chapter presents the proposed structured auto-encoder. \secref{assumptions} states the assumptions of the model. \secref{linear_regression} reviews the basics of linear regression, the foundation of our model. \secref{sparse_coding} introduces sparse coding, \secref{dictionary_learning} introduces a trainable dictionary and \secref{manifold_learning} introduces manifold learning. Last but not least, \secref{encoder} introduces the trainable encoder. Finally, \secref{energy_formulation} reviews the whole energy-based formulation and brings some new insights.
 
 \section{Assumptions} \label{sec:assumptions}
 % Xavier: needs to be improved.
@@ -337,7 +340,7 @@ While there is no convergence guarantee for the unnormalized graph Laplacian, th
 \paragraph{Model.}
 % Paper: By using graph Laplacian as a smooth operator, the obtained sparse representations vary smoothly along the geodesics of the data manifold.
 The geometrical information about the data is encoded in a similarity graph constructed by the training vectors $\X$ and the graph Laplacian is used as a smooth operator to preserve the local manifold structure. Introducing the Dirichlet energy into the objective function as an additional $\ell_2$ regularization, similar to the Tikhonov regularization presented in \secref{linear_regression}, gives
-\begin{equation}\label{eqn:en_structure}
+\begin{equation}
 	\Etwo = \frac{\lambda_d}{2} \normF{\X - \D \Z} + \lambda_z \normO{\Z} + \frac{\lambda_g}{2} \tr(\Z^T \L \Z).
 \end{equation}
 This regularization promotes a smooth variations of the representations along the geodesics of the data manifold.
@@ -359,12 +362,12 @@ Moreover, adding structure to the problem should enhance the behavior of the los
 % How ?
 \paragraph{Model.}
 Introducing a trainable encoder $\E \in \R^{m \times n}$, designed to predict sparse codes from input vectors with minimum error, into our model gives the energy function
-\begin{equation}\label{eqn:en_encoder}
+\begin{equation} \label{eqn:en_encoder}
 	\Ethree = \frac{\lambda_d}{2} \normF{\X - \D \Z} + \lambda_z \normO{\Z} + \frac{\lambda_g}{2} \tr(\Z^T \L \Z) + \frac{\lambda_e}{2} \normF{\Z - \E \X}, %{\color{red} + \lambda_s \normO{\E \X}},
 \end{equation}
 %where $\lambda_e$ and $\lambda_s$ are two additional hyper-parameters which control the sparsity versus fidelity tradeoff. The problem is then defined by
 where $\lambda_e$ is an additional hyper-parameter which controls the relative weight of the prediction error. The problem is then defined by
-\begin{equation}\label{eqn:pr_encoder}
+\begin{equation} \label{eqn:pr_encoder}
 	\minimize{\Z,\D,\E} \Ethree \st \cst{\d}{i} , \cst{\e}{k} ,
 	\ \forallx{i}{m} , \ \forallx{k}{n},
 \end{equation}
@@ -373,37 +376,100 @@ where $\e_k$ are the columns of $\E$. %Again, the $\ell_1$ penalty $\normO{\E \X
 \paragraph{Energy.}
 While it is often a good idea to control the energy, the constraint on the columns of $\E$ is not needed in practice. While the columns of $\D$ are constrained to a norm smaller than one, they are in practice normalized because of the $\normO{\Z}$ objective. The energy of a vector transformed by $\D$ does thus not change, which means that the inferred sparse code $\z_i$ as the same energy as its corresponding vector $\x_i$. The encoder does then not need to add energy and will have a column norm smaller than one, even without the constraint. It has been verified empirically.
 
-\section{Energy-based formulation} \label{sec:energy_formulation}
-% energy-based model
-% Why energy ?
-% Comparison with LeCun PSD. Or in related work ?
+\section{Auto-encoder}
+% Reviews the whole energy-based formulation and brings some new insights.
+% Identify parts of the energy functions to equations in regression, e.g. tik, lasso, elastic.
 
-% Finish with the complete objective function.
-% Why energy function ? Many laws of nature are nothing but optimality conditions, often expressed in terms of a minimum energy principle.
-% Easy to add and remove terms.
-% the sparsity constraint prevents the auto-encoder to learn the identity
+\paragraph{Energy formulation.}
+The energy function \eqnref{en_encoder}, which defines our model, may be rewritten as a sum of functions of the variables $\Z$, $\D$ and $\E$ as follows:
+\begin{equation} \label{eqn:objective}
+	\underbrace{\frac{\lambda_d}{2} \normF{\X - \D \Z}}_{\fd} +
+	\underbrace{\lambda_z \normO{\Z}}_{\fz} +
+	\underbrace{\frac{\lambda_g}{2} \tr(\Z^T \L \Z)}_{\fg} +
+	\underbrace{\frac{\lambda_e}{2} \normF{\Z - \E \X}}_{\fe}.
+\end{equation}
+An advantage of the energy formulation is that it is easy to control the relative importance of the sub-objectives, whether they are fidelity or prior terms. As seen through this chapter, the model is easily constructed by sequentially adding terms to the objective. They are as easily removed, or muted, when experimentations require it.
+{\color{red} Other advantages of energy ?}
+
+\paragraph{Auto-encoder model.}
+Training the model is akin to minimize the objective function \eqnref{objective} over the variables, or model parameters $\Z$, $\D$ and $\E$:
+\begin{multline} \label{eqn:model}
+	%\text{given} \lambda_d, \lambda_z, \lambda_g, \lambda_e \geq 0, \X
+	\minimize{\Z,\D,\E} \fd + \fz + \fg + \fe \\
+	\st \cst{\d}{i} ,\ \cst{\e}{k} ,\ \forallx{i}{m} ,\ \forallx{k}{n}.
+\end{multline}
+Posing the problem as the minimization of an objective function is a clean expression of the model. Indeed, many laws of nature are nothing but optimality conditions, often expressed in terms of a minimum energy principle.
+
+Note that the regularizations $\fz$ and $\fg$ on the internal representation are preventing the auto-encoder to learn the identity $\D = \E = \I$.
 
 {\color{red} Image with input x and hidden z. Output is y=sh(Ex). Weight matrices are D and E with sh() activation function. Approximately.}
 
-% Sparse coding: terms ..
-% Auto-encoders: terms ..
-% Manifold learning: terms ..
-% Regularized least square (elastic net): terms ..
+\paragraph{Encoder.}
+The proposed model is indeed an auto-encoder. Given its hyper-parameters $\lambda_d, \lambda_z, \lambda_g, \lambda_e \geq 0$ and a training set $\X$, model \eqnref{model} learns the auto-encoder variables, i.e. the dictionary $\D$ and the encoder $\E$. Then, given $\D$ and $\E$, the sparse and structured internal representation $\z^*$ of an unseen sample $\x$ is given by
+\begin{equation} \label{eqn:z_exact}
+	\z^* = \argmin{\z} \frac{\lambda_d}{2} \normT{\x - \D \z} + \lambda_z \normO{\z} + \frac{\lambda_g}{2} \inner{\z}{\L \z} + \frac{\lambda_e}{2} \normT{\z - \E \x},
+\end{equation}
+where the graph Laplacian $\L$ is constructed from the data.
 
-Our overall model may be thought as an hybrid between a sparse and a denoising auto-encoder.
+\paragraph{Decoder.}
+Similarly, the mapping of a representation $\z$ back to the input domain is given by
+\begin{equation} \label{eqn:x_exact}
+	\x^* = \argmin{\x} \frac{\lambda_d}{2} \normT{\x - \D \z} + \frac{\lambda_e}{2} \normT{\z - \E \x}.
+\end{equation}
 
-% Identify parts of the energy functions to equations in regression, e.g. tik, lasso, elastic.
+\section{Approximate schemes} \label{sec:approximate_schemes}
+% In the next chapter ? It is not really a part of the model, but a use of it. Not really: third assumption.
 
-%\chapter{Related work} \label{chap:related_work}
+\paragraph{Motivation.}
+While encoder \eqnref{z_exact} extracts the exact representation given the auto-encoder model \eqnref{model}, it is computationally heavy. We aim at a faster encoder model to infer an approximate representation $\tilde{\z} \approx \z^*$.
+
+\paragraph{Direct encoder.}
+Neglecting some of the terms in \eqnref{z_exact} because of our model's third assumption given in \secref{assumptions}, the approximation:
+\begin{equation} \label{eqn:z_approximate}
+	\tilde{\z} = \argmin{\z} \frac{\lambda_e}{2} \normF{\z - \E \x} + \lambda_z \normO{\z}
+\end{equation}
+is able to infer good enough representations. Problem \eqnref{z_approximate} holds a closed-form solution:
+\begin{equation} \label{eqn:z_direct}
+	\tilde{\z} = h_{\lambda_e / \lambda_z} (\E \x),
+\end{equation}
+where $h_{\lambda_e / \lambda\z}$ is the soft-thresholding function defined here by
+\begin{equation}
+	h_{\lambda_e / \lambda_z}(\x)_k = \sign(x_k) \left( |x_k| - \frac{\lambda_z}{\lambda_e} \right)_+ ,
+\end{equation}
+where $(\cdot)_+ = \max(\cdot, 0)$. Therefore, the explicit encoder formulation introduced in \secref{encoder} allows a direct inference of the representation.
+
+Note that although the dictionary $\D$ and the graph Laplacian $\L$ are not used in the approximate scheme \eqnref{z_direct}, they however add structure to the problem because $\E$ is learned simultaneously with $\D$ and a regularization which makes use of $\L$. Additional structure has been shown to enhance the behavior of the loss function and help sparse recovery \cite{kowalski2009sparse, baraniuk2010modelCS, huang2011LearningStructuredSparsity, jenatton2011structured}.
+
+\paragraph{Direct decoder.}
+Although we care less about decoder \eqnref{x_exact}, a similar approach may be used to approximate $\x^*$:
+\begin{equation} \label{eqn:x_direct}
+	\tilde{\x} = \argmin{\x} \frac{\lambda_d}{2} \normT{\x - \D \z} = \D \z.
+\end{equation}
+
+\chapter{Related work}
+% That is clearly not a part of the model.
 % How do we compare with other auto-encoders ?
-% Sparse: Corresponds to 2 of our terms.
-% Denoising: The manifold terme pushes the samples back to the manifold, effectively denoising the samples.
+% Our overall model may be thought as an hybrid between a sparse and a denoising auto-encoder.
+
+\paragraph{Standard auto-encoders.}
+Auto-encoders, as introduced by \cite{bourlard1988autoencoder, hinton1994autoencoder}, are defined by one linear hidden layer and the mean squared error criterion is used to train the network, i.e. their model is \eqnref{model} without any regularization.
+Because of the lack of constraint, an auto-encoder with $n$-dimensional input and an encoding of dimension at least $n$ could potentially just learn the identity function. However, it as been shown that \gls{SGD} with early stopping is similar to an $\ell_2$ regularization of the parameters \cite{zinkevich2003SGDl2regularization}.
+
+\paragraph{Sparse auto-encoders.}
+Direct decoder \eqnref{x_direct} is the definition used for sparse auto-encoders \cite{lecun2006sparseAutoencoders, ranzato2007stackedSparseAutoencoders}. While the encoder definition may vary, it includes at least the first two terms of encoder \eqnref{z_exact}, related to sparse coding.
+
+\paragraph{Predictive sparse decomposition.}
+A technique introduced in \cite{lecun2010PSD} which, similarly to us, adds an explicit encoder to the sparse coding scheme. Their encoder architecture is very close to direct encoder \eqnref{z_direct}. Using sparse coding, their decoder is defined by direct decoder \eqnref{x_direct}.
+
+\paragraph{Denoising auto-encoders.}
+Denoising auto-encoders share the same model as the standard auto-encoders, but are trained with stochastically corrupted data  \cite{bengio2008denoisingAutoencoders}. They thus learn to undo the effect of the corruption. In model \eqnref{model}, the Dirichlet energy term promotes smooth variations along the data manifold. It has the effect of pushing noisy samples toward the manifold, effectively denoising them.
+%This is essentially what a \gls{RBM} does \cite{hinton2002RBM}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\chapter{Learning through optimization} \label{chap:learning}
+\chapter{Optimization} \label{chap:optimization}
 % Learning / Training
 % Non-convex problem where each sub-problem / independant variable is a convex problem --> outer loop --> objective monotically decreasing.
 % Batch (FISTA, primal-dual) and online (stochastic gradient descent) training
@@ -413,15 +479,18 @@ Our overall model may be thought as an hybrid between a sparse and a denoising a
 % Why we can use FISTA an PD ?
 % Derive FISTA and primal-dual formulations.
 
-% Only the sub-problems are convex.
-Although the objective function in (2) is convex in only
-or only, it is not convex in both variables together. A nat-
-ural approach to solve this problem is to iteratively optimize the
-objective function (2) by minimizing over one variable while
-keeping the other one fixed. Thus, it becomes an -regular-
-ized least squares problem plus an -constrained least squares
-problem, which can both be solved efficiently by several opti-
-mization methods.
+The whole process of training the auto-encoder is to solve the non-convex optimization problem \eqnref{model}. Because of its non-convexity, there is no guarantee to find its global minimum. The minimization will end up in the closest local minimum of the neighborhood of its initialization. Given the same training data, a random initialization will lead to a different solution at every run.
+{\color{red} Is there anything we can say about good enough local minima ? Or that many local minima are actually similar and we don't care in which we fall ?}
+
+
+
+As \eqnref{model} is non-convex only when all the variables are taken together, a natural way of solving is to iteratively optimize the objective for one variable at a time while fixing the others, which are convex sub-problems. {\color{red}It as been shown that if every sub-problem is optimally solved, the global objective monotonically converges.}
+
+\begin{equation}
+	\minimize{\d_i} \underbrace{\frac{\lambda_d}{2} \normF{\X^T - \z_i^T \d_i^T}}_{f(\d_i^T)} + \underbrace{\iota_C(\d_i)}_{g(\d_i^T)} , \forallx{i}{m}
+\end{equation}
+
+
 
 % An alternative for the dictionary part.
 One of the most efficient methods is the K-SVD method [28]. The K-SVD is a way to learn a dictionary, instead of exploiting standard bases as described previously, that leads to sparse representations for the data. This algorithm uses ei- ther orthogonal matching pursuit (OMP) or basis pursuit (BP), as part of its iterative procedure for learning the dictionary.
@@ -453,31 +522,10 @@ One of the most efficient methods is the K-SVD method [28]. The K-SVD is a way t
 
 \subsection{Primal-dual}
 
+\section{Optimization algorithm}
+% How to write algorithms (with a frame) in Latex ?
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Given the hyper-parameters $\lambda_d \geq 0$, $\lambda_z \geq 0$, $\lambda_g \geq 0$, $\lambda_e \geq 0$ and a training set $\X \in \R^{n \times N}$.
 
-
-\chapter{Feature extraction} \label{chap:feature_extraction}
-% In the next chapter ? It is not really a part of the model, but a use of it.
-
-Once the auto-encoder parameters (the dictionary $\D$, the encoder $\E$ and the graph Laplacian $\L$) have been learned from training data following  \eqnref{en_encoder}, the model is to be used for feature extraction on unseen data.
-
-Under the complete model \eqnref{en_encoder}, the sparse and structured representation $\z^*$ of a vector $\x$ is given by
-\begin{equation} \label{eqn:z_exact}
-	\z^* = \argmin{\z} \frac{\lambda_d}{2} \normF{\x - \D \z} + \lambda_z \normO{\z} + \frac{\lambda_g}{2} \inner{\z}{\L \z} + \frac{\lambda_e}{2} \normF{\z - \E \x}.
-\end{equation}
-Neglecting some of the terms, the approximation
-\begin{equation} \label{eqn:z_approximate}
-	\z^* = \argmin{\z} \frac{\lambda_e}{2} \normF{\z - \E \x} + \lambda_z \normO{\z}
-\end{equation}
-should infer good enough representations given the model's third assumption. This approximate problem possesses the closed-form solution
-\begin{equation} \label{eqn:z_direct}
-	\z^* = h_{\lambda_e / \lambda_z} (\E \x),
-\end{equation}
-where $h_{\lambda_e / \lambda\z}$ is the soft-thresholding function given by
-\begin{equation}
-	h_{\lambda_e / \lambda_z}(\x)_k = \sgn(x_k) \left( |x_k| - \frac{\lambda_z}{\lambda_e} \right)_+.
-\end{equation}
-The explicit encoder formulation introduced in \secref{encoder} indeed allows a direct inference of the representation.
-
-While the dictionary $\D$ and the graph Laplacian $\L$ are not used in the approximate scheme, they add structure to the problem, which has been shown to enhance the behavior of the loss function \cite{kowalski2009sparse, baraniuk2010modelCS, huang2011LearningStructuredSparsity, jenatton2011structured}.
+\paragraph{Initialization}
+Randomly initialize $\D$ and rescale each column to unit-norm to satisfy the constraint of problem \eqnref{model}. Initialize $\Z$ to zero. % sparse enough, cannot practically init to full because of mem.

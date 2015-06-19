@@ -33,7 +33,7 @@ The composition and integrity of the dataset has been analyzed in \cite{sturm201
 
 
 \chapter{System} \label{chap:system}
-% Visual diagram: pre-processing, feature extraction, post-processing, classification, voting
+% Visual diagram: pre-processing, features extraction, post-processing, classification, voting
 % Inspyred by [ref lecun] which uses sparse auto-encoders.
 
 The design of the genre recognition system is inspired by \cite{lecun2011PSDaudio}, which uses a layer of sparse auto-encoder to learn sparse representations of audio spectrograms targeted at \gls{MGR}. Although they call their encoder technique \gls{PSD} \cite{lecun2010PSD}, it is effectively a sparse auto-encoder \cite{bengio2009learningDeepAI}. The structured auto-encoder developed in \partref{algorithm} generalizes their loss function as an energy function and introduces a structuring term (\secref{manifold_learning}).
@@ -41,14 +41,14 @@ The design of the genre recognition system is inspired by \cite{lecun2011PSDaudi
 The system mainly consists of three independent building blocs:
 \begin{enumerate}
 	\item \textbf{Preprocessing}, whose goal is to transform the raw audio signal into a time-frequency representation. It is essentially a first feature extraction pass, built on prior knowledge about signal processing and audio signals in particular. The spectrograms are further sliced in short time frames to provide time invariance.
-	\item \textbf{Features extraction}: the set of spectrogram slices is given as input vectors to the proposed structured auto-encoder who transforms them into a sparse and structured representation.
+	\item \textbf{Feature extraction}: the set of spectrogram slices is given as input vectors to the proposed structured auto-encoder who transforms them into a sparse and structured representation.
 	\item \textbf{Classification}: the extracted features are used for genre classification after a post-processing step analog to feature pooling. The accuracy is assessed by a cross-validation scheme.
 \end{enumerate}
 
 {\color{red} system figure}
 
 \section{Preprocessing} \label{sec:preprocessing}
-% Frames, CQT, LCN, feature / sample scaling.
+% Frames, CQT, LCN, features / sample scaling.
 % A LCN may further increase the accuracy [ref LeCun].
 
 \paragraph{Frames.}
@@ -72,24 +72,23 @@ Consider a point in the spectrogram and its neighborhood along both the time and
 The technique enforces competition between neighboring points in the spectrogram, so that low-energy signals are amplified while high-energy ones are muted. The entire process can be seen as a simple form of \gls{AGC}. It tries to inverse the heat diffusion, similarly to a shock filter \cite{osher1990shockFilters}. The idea of contrast normalization is inspired by visual neuroscience models \cite{lyu2008LCNneuro1, pinto2008LCNneuro2}.
 
 \paragraph{Scaling.}
-The range of the independent variables is finally rescaled in $[0,1]$ to eliminate any bias toward features who have a broad range of values. Each feature then contributes approximately proportionately to the distance between two feature vectors. Another commonly used scaling method is standardization: the independent variables are rescaled to have zero-mean and unit-variance. Yet another method is to rescale each feature vector to unit length, which usually means dividing each component by the Euclidean length of the vector.
+The range of the independent variables is finally rescaled in $[0,1]$ to eliminate any bias toward features who have a broad range of values. Each feature then contributes approximately proportionately to the distance between two features vectors. Another commonly used scaling method is standardization: the independent variables are rescaled to have zero-mean and unit-variance. Yet another method is to rescale each features vector to unit length, which usually means dividing each component by the Euclidean length of the vector.
 
 \section{Feature extraction}
 % Most accurate extraction with original model.
 % Much faster approximations by ignoring some terms of the objective.
 
-In a transductive learning paradigm \cite{vapnik1998transductiveLearning}, the auto-encoder model (\chapref{model}) is trained on the entire dataset (which includes the training and test sets without labels). Under this paradigm, test samples are known in advance, and the system is simply asked to produce labels for them. This paradigm was chosen for speed reasons: since training is computationally expensive, it is best done only once per experiment. The training phase is essentially the application of the algorithm presented in \chapref{learning} to solve \eqnref{pr_encoder} over the whole dataset. A structured and sparse representation is readily available for each spectrogram of the dataset, they are a by-product of model fitting.
+In a transductive learning paradigm \cite{vapnik1998transductiveLearning}, the auto-encoder model (\chapref{model}) is trained on the entire dataset (which includes the training and test sets without labels). Under this paradigm, test samples are known in advance, and the system is simply asked to produce labels for them. This paradigm was chosen for speed reasons: since training is computationally expensive, it is best done only once per experiment. The training phase is essentially the application of the algorithm presented in \chapref{optimization} to solve \eqnref{model} over the whole dataset. A structured and sparse representation is readily available for each spectrogram of the dataset, they are a by-product of model fitting.
 
 Note that while that paradigm is used for this application, the algorithm proposed in \partref{algorithm} is still purely unsupervised, i.e. it makes no use of the training labels.
 Note also that while the system was designed for transductive learning, it can act in a supervised learning way. A predictive model was built during training, and, using the learned parameters, a representation for a previously unknown spectrogram may be inferred with \eqnref{z_exact} or \eqnref{z_direct}.
 
 \section{Classification}
-% Feature aggregation (feature vectors), linear SVM, majority voting (winner take all).
 
 \paragraph{Aggregate features.}
 % Analog to feature pooling.
 % Goal: change of time scale.
-Aggregate features are computed for each song by summing up the frame-level features over 5-second time windows overlapping by half, which has been found to substantially improve classification performance \cite{bergstra2006aggregateFeatures, hamel2010aggregateFeatures}. Since each sparse code records which dictionary elements are present in a given \gls{CQT} frame, these aggregate feature vectors can be thought of as histograms recording the number of occurrences of each dictionary element in the time window.
+Aggregate features are computed for each song by summing up the frame-level features over 5-second time windows overlapping by half, which has been found to substantially improve classification performance \cite{bergstra2006aggregateFeatures, hamel2010aggregateFeatures}. Since each sparse code records which dictionary elements are present in a given \gls{CQT} frame, these aggregate features vectors can be thought of as histograms recording the number of occurrences of each dictionary element in the time window.
 
 \paragraph{\gls{SVM}.}
 Aggregate features are then classified by a \gls{SVM} \cite{cortes1995SVM}, which is a non-probabilistic binary linear classifier. It was chosen because it is fast to train and scale well to large datasets (thanks to the few support vectors), which is an important consideration in \gls{MIR}.
@@ -146,7 +145,7 @@ The genre prediction for a clip is given by a majority vote between the 12 aggre
 
 % All the simulations on a reduced dataset because of computation time.
 % Only one simulation on the full set for comparison with others. So without noise, with graph.
-The iterative optimization scheme presented in \chapref{learning} is, by definition, rather computationally heavy. Despite having been sped up by an order of magnitude already (see \secref{performance}), it is still quite sub-optimal from a computational point-of-view. As the algorithm itself is still a prototype, we did not want to invest too much time to further optimize its implementation. For this reason, the following experiments where all conducted on a subset of the dataset.
+The iterative optimization scheme presented in \chapref{optimization} is, by definition, rather computationally heavy. Despite having been sped up by an order of magnitude already (see \secref{performance}), it is still quite sub-optimal from a computational point-of-view. As the algorithm itself is still a prototype, we did not want to invest too much time to further optimize its implementation. For this reason, the following experiments where all conducted on a subset of the dataset.
 
 Furthermore, the classification accuracy was measured on individual frames, i.e. before majority voting, rather than on whole clip. The rational is to capture the confidence about the class of a clip. Another positive impact is the reduction of the variance caused by the increased number of samples.
 
@@ -199,10 +198,10 @@ little recognizable structure.
 
 \section{Convergence analysis}
 
-The encoder fidelity sub-objective is 2 orders of magnitude lower than the other sub-objectives, which suggests that the addition of the encoder does not alter the features extracted via the complete scheme defined by \eqnref{pr_encoder}.
+The encoder fidelity sub-objective is 2 orders of magnitude lower than the other sub-objectives, which suggests that the addition of the encoder does not alter the features extracted via the complete scheme defined by \eqnref{model}.
 
-\section{Descriptive feature vectors}
-% Show aggregated feature vectors for some genres.
+\section{Descriptive features vectors}
+% Show aggregated features vectors for some genres.
 % How is it qualitatively more discriminative than the spectrogram ?
 
 \section{Hyper-parameters tuning}
@@ -218,8 +217,11 @@ Overcompleteness, defined by the hyper-parameter $m$, must be evaluated by consi
 \section{Classification accuracy}
 % On the whole dataset, not very good in comparison with others.
 % Measured via 10-fold cross-validation
-% How classification is improved by feature learning, introducing the encoder / graph.
+% How classification is improved by features learning, introducing the encoder / graph.
 % Comparison with other techniques.
+
+M: However in the noiseless environment the addition of the graph is not significant.
+X: oui, mais tu ne dois pas oublier que tu fais du *transductive* learning, c'est a dire tu apprends les features en utilisant training + TEST data. C'est pour cela que tu n'as pas une amelioration significative. Si on faisait du *supervised* learning, c'est a dire on utilise seulement les TRAINING data, alors ce probleme est bcp plus challenging que le transductive probleme, et la je pense que nos resultats avec graph seraient bien meilleures! C'est un commentaire que je te conseille d'ajouter a ton resultat pour le mettre en perspective. Aussi la premiere chose a faire apres le PDM est de faire du *supervised* learning avec graph et le comparer avec no graph, je pense que l'on aura des (bonnes) surprises!
 
 
 \section{Scarce training set}
