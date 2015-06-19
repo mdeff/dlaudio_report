@@ -83,14 +83,15 @@ In a transductive learning paradigm \cite{vapnik1998transductiveLearning}, the a
 Note that while that paradigm is used for this application, the algorithm proposed in \partref{algorithm} is still purely unsupervised, i.e. it makes no use of the training labels.
 Note also that while the system was designed for transductive learning, it can act in a supervised learning way. A predictive model was built during training, and, using the learned parameters, a representation for a previously unknown spectrogram may be inferred with \eqnref{z_exact} or \eqnref{z_direct}.
 
+The optimization scheme presented in \chapref{model} is implemented with the PyUNlocBoX\footnote{Available at \url{https://github.com/epfl-lts2/pyunlocbox}.}, an open-source Python convex optimization toolbox developed and maintained by ourselves. The toolbox has been enhanced by the needs of this project, e.g. its memory footprint has been greatly reduced.
+The FLANN library \cite{muja2009flann} is used for a fast approximate k-nearest neighbors search, used to construct the graph as described in \secref{manifold_learning}.
+
 \section{Classification}
 
 \paragraph{Aggregate features.}
 % Analog to feature pooling.
 % Goal: change of time scale.
 Aggregate features are computed for each song by summing up the frame-level features over 5-second time windows overlapping by half, which has been found to substantially improve classification performance \cite{bergstra2006aggregateFeatures, hamel2010aggregateFeatures}. Since each sparse code records which dictionary elements are present in a given \gls{CQT} frame, these aggregate features vectors can be thought of as histograms recording the number of occurrences of each dictionary element in the time window.
-
-When constructing the graph, the implementation uses the FLANN library \cite{muja2009flann} for a fast approximate k-nearest neighbors search.
 
 \paragraph{\gls{SVM}.}
 Aggregate features are then classified by a \gls{SVM} \cite{cortes1995SVM}, which is a non-probabilistic binary linear classifier. It was chosen because it is fast to train and scale well to large datasets (thanks to the few support vectors), which is an important consideration in \gls{MIR}.
@@ -144,71 +145,94 @@ The genre prediction for a clip is given by a majority vote between the 12 aggre
 \chapter{Results} \label{chap:results}
 % Results and comparisons
 % Include discussion in results ?
-
-% All the simulations on a reduced dataset because of computation time.
 % Only one simulation on the full set for comparison with others. So without noise, with graph.
-The iterative optimization scheme presented in \chapref{optimization} is, by definition, rather computationally heavy. Despite having been sped up by an order of magnitude already (see \secref{performance}), it is still quite sub-optimal from a computational point-of-view. As the algorithm itself is still a prototype, we did not want to invest too much time to further optimize its implementation. For this reason, the following experiments where all conducted on a subset of the dataset.
 
-Furthermore, the classification accuracy was measured on individual frames, i.e. before majority voting, rather than on whole clip. The rational is to capture the confidence about the class of a clip. Another positive impact is the reduction of the variance caused by the increased number of samples.
+\paragraph{Performance evaluation}
+%All the results therein are averages of 20 runs of 10-fold cross-validation.
+Following standard practice, the classification accuracy was measured by 10-fold cross-validation. For each fold, 10\% of the aggregate features were randomly selected to serve as a test set, wile the remaining 90\% served as training data. This procedure was repeated 20 times, and the results averaged to produce a final classification accuracy.
+% While the accuracy has been critized for MIR.
 
-Note that no contrast enhancement (the \gls{LCN} described in \secref{preprocessing}) was applied to the spectrograms for the following experiments.
+Furthermore, the classification accuracy was measured on aggregate features, i.e. before majority voting, rather than on whole clip. The rational is to capture the confidence about the class of a clip. Another positive impact is the reduction of the variance caused by the increased number of samples.
 
-Note that the provided results (\chapref{results}) have been  without this step.
+Note also that no contrast enhancement (the \gls{LCN} described in \secref{preprocessing}) was applied to the spectrograms for these experiments.
 
-The first presented result shows that the sparse and structured representation extracted from the spectrograms by the structured auto-encoder defined in \partref{algorithm} is indeed more discriminative than the spectrograms in a classification task.
+\paragraph{Speed and memory considerations.}
+The iterative optimization scheme presented in \chapref{optimization} is, by definition, computationally heavy. Despite having been sped up by an order of magnitude already, our implementation is still quite sub-optimal from a computational point-of-view. As the algorithm itself is still a prototype, we did not invest too much time to further optimize its implementation. For this reason, the following experiments where all conducted on a subset of the dataset.
 
-The second experiment shows that structured representations are robust to noise.
+Despite the fact that the memory consumption was divided by five since the first working implementation, it is still not enough to run a simulation with the whole dataset on a virtual served equipped with 30GB of RAM. Note that the current implementation retains everything in memory.
 
-All the conducted experiments, whether they succeed or failed, may be viewed online\footnote{The IPython notebooks are stored on GitHub and can be visualized at \url{http://nbviewer.ipython.org/github/mdeff/dlaudio_results/}.}.
-
-All the results were obtained via git revision *** of the code, available on GitHub and revision *** of the PyUNlocBoX\footnote{Available at}.
-
-% State what the hyper-parameters are.
-
-\paragraph{Cross-validation}
-All the results therein are averages of 20 runs of 10-fold cross-validation.
-
-Following standard practice,
-classification performance was measured by 10-fold cross-
-validation. For each fold, 100 songs were randomly selected
-to serve as a test set, with the remaining 900 serving as train-
-ing data. This procedure was repeated 20 times, and the re-
-sults averaged to produce a final classification accuracy.
+\paragraph{Reproducibility.}
+The complete simulation reports of all the conducted experiments, whether they succeed or failed, may be viewed online\footnote{The IPython notebooks are stored on GitHub and can be visualized at \url{http://nbviewer.ipython.org/github/mdeff/dlaudio_results/}.}.
+The code to reproduce all the results may also be downloaded\footnote{Available at \url{https://github.com/mdeff/dlaudio}.}.
 
 \section{Spectrograms} \label{sec:spectrograms}
 % Show example spectrograms of jazz / blues. Show how they are different (music theory) and can such be distinguished.
 
-% Or whole dataset.
-The spectrograms are indeed discriminative features. On an experiment to classify $N = $ frames, we observed a classification accuracy of $00$, whereas classification with raw audio yields an accuracy of $00$. Classifications with raw spectrogram is our baseline for further experiments: we will report improvements of the extracted features with respect to the baseline.
+On a classification experiment with $N_{genres} = 2$ genres, $N_{clips} = 100$ clips per genre and $N_{frames} = 644$ frames per clip, the system achieved a classification accuracy of 96 (+/- 4.7) using the \gls{CQT} spectrograms, whereas classification with raw audio yielded an accuracy of 89 (+/- 5.0). It confirms that \gls{CQT} spectrograms have more discriminative power than raw audio.
+
+Classifications with \gls{CQT} spectrograms will be our baseline for further experiments. Improvements in accuracy with the extracted features will be reported with respect to this baseline.
 
 %\subsection{Baseline} \label{sec:baseline}
 %We first applied linear SVM (or other) to raw audio, \gls{CQT} spectrogram and \gls{LCN} normalized spectrogram. \tabref{tab:comparison} indeed shows that each transformation, i.e. extraction of higher level features, of the raw audio makes sense and improve the classification accuracy.
 
-\section{Learned features}
+\section{Figures of merit}
 % Show some atoms: harmonics, chords, harmonies, drums.
 % Probably not on full CQT, should be on octaves.
-%Via music theory, we know that music is constructed via some building blocks, e.g.
+% Via music theory, we know that music is constructed via some building blocks.
 
-Although we have not observed meaningful atoms (yet), \cite{lecun2010PSD} showed that when dictionaries where trained on individual octaves, they discovered harmonics, chords and harmonies without any prior about music theory.
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=9cm]{img/dictionary}
+	\caption[]{A learned dictionary.}
+	\label{fig:dictionary}
+\end{figure}
 
-% LeCun.
-One can see single notes and what appear to be series of linearly
-spaced notes, which could correspond to chords, harmonics
-or harmonies. Note that some of the basis functions appear
-to be inverted, since the code coefficients can be negative.
-A number of the learned basis functions also seem to have
-little recognizable structure.
+\paragraph{Learned dictionary.}
+\figref{dictionary} depicts a learned dictionary. Although the atoms are not easily interpretable, single notes seem to appear here and there. \cite{lecun2010PSD} showed that dictionaries trained on individual octaves did discover harmonics, chords and harmonies without any prior about music theory.
 
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\textwidth]{img/sparse_representations}
+	\caption[]{A learned representation, which is indeed sparse.}
+	\label{fig:sparse_representations}
+\end{figure}
 
-\section{Convergence analysis}
+\paragraph{Sparse representations.}
+\figref{sparse_representations} shows the representations inferred by \eqnref{model} after convergence. With only 19.8\% of non-zero coefficients, the learned representations are indeed sparse.
 
-The encoder fidelity sub-objective is 2 orders of magnitude lower than the other sub-objectives, which suggests that the addition of the encoder does not alter the features extracted via the complete scheme defined by \eqnref{model}.
+\begin{figure}[ht]
+	\centering
+	\begin{subfigure}[b]{0.9\textwidth}
+		\centering
+		\includegraphics[height=6cm]{img/sub_problems}
+		\caption{Sub-problem objectives $f_2(\Z)$, $f_1(\Z)$, $f_2(\D)$ and $f_2(\E)$ evaluated at each inner iteration.}
+	\end{subfigure}
+	\\
+	\begin{subfigure}[b]{0.9\textwidth}
+		\centering
+		\includegraphics[height=6cm]{img/sub_objectives}
+		\caption{Sub-objectives $\fd$, $\fe$, $\fz$ and $\fg$ evaluated at each outer iteration.}
+	\end{subfigure}
+	\\
+	\begin{subfigure}[b]{0.9\textwidth}
+		\centering
+		\includegraphics[height=6cm]{img/objective}
+		\caption{Global objective $\fd + \fe + \fz + \fg$ evaluated at each outer iteration.}
+	\end{subfigure}
+	\caption[]{Example of a typical convergence of the algorithm.}
+	\label{fig:convergence}
+\end{figure}
 
-\section{Descriptive features vectors}
+\paragraph{Convergence.}
+While the optimization always end in a different local minimum (\chapref{optimization}), a pretty stable convergence behavior has been observed in all the experiments. \figref{convergence} shows the evolution of the various objectives in a typical convergence of the algorithm.
+
+%The encoder fidelity sub-objective is 2 orders of magnitude lower than the other sub-objectives, which suggests that the addition of the encoder does not alter the features extracted via the complete scheme defined by \eqnref{model}.
+
+%\section{Descriptive features vectors}
 % Show aggregated features vectors for some genres.
 % How is it qualitatively more discriminative than the spectrogram ?
 
-\section{Hyper-parameters tuning}
+%\section{Hyper-parameters tuning}
 % Test matrix for hyper-parameters on smaller problem (i.e. less frames).
 % For ld, le, lg, m
 % Numerical parameters: Nouter (enough when no more inner), rtol
@@ -216,49 +240,37 @@ The encoder fidelity sub-objective is 2 orders of magnitude lower than the other
 % Classification: C, Nvectors
 % Pre-processing: na=1024, ns=96
 
-Overcompleteness, defined by the hyper-parameter $m$, must be evaluated by considering the number of code units and the effective dimensionality of the input as given by \gls{PCA}.
+% Overcompleteness, defined by the hyper-parameter $m$, must be evaluated by considering the number of code units and the effective dimensionality of the input as given by \gls{PCA}.
 
-\section{Classification accuracy}
+%\section{Classification accuracy}
 % On the whole dataset, not very good in comparison with others.
 % Measured via 10-fold cross-validation
 % How classification is improved by features learning, introducing the encoder / graph.
 % Comparison with other techniques.
+% State what the hyper-parameters are.
+
+%\section{Sparse representations}
+% The extracted representations are indeed sparse.
+
+%\section{Scarce training set}
+% Il faut juste garder à l'esprit que le graphe (et le dictionnaire) est appris sur le dataset complet. Ça peut cependant être utile si on a beaucoup de données à disposition mais que les labels coûtent chers.
+
+\section{Classification performance}
+% Final experiement: baseline, graph-less, graph vs noise level
+% Robustness to noisy data
+
+The first presented result shows that the sparse and structured representation extracted from the spectrograms by the structured auto-encoder defined in \partref{algorithm} is indeed more discriminative than the spectrograms in a classification task.
+
+The second experiment shows that structured representations are robust to noise.
 
 M: However in the noiseless environment the addition of the graph is not significant.
 X: oui, mais tu ne dois pas oublier que tu fais du *transductive* learning, c'est a dire tu apprends les features en utilisant training + TEST data. C'est pour cela que tu n'as pas une amelioration significative. Si on faisait du *supervised* learning, c'est a dire on utilise seulement les TRAINING data, alors ce probleme est bcp plus challenging que le transductive probleme, et la je pense que nos resultats avec graph seraient bien meilleures! C'est un commentaire que je te conseille d'ajouter a ton resultat pour le mettre en perspective. Aussi la premiere chose a faire apres le PDM est de faire du *supervised* learning avec graph et le comparer avec no graph, je pense que l'on aura des (bonnes) surprises!
 
 
-\section{Scarce training set}
-% Il faut juste garder à l'esprit que le graphe (et le dictionnaire) est appris sur le dataset complet. Ça peut cependant être utile si on a beaucoup de données à disposition mais que les labels coûtent chers.
-
-\section{Robustness to noisy data}
-% Final experiement: baseline, graph-less, graph vs noise level
-
-The complete simulation report may be visualized at (or downloaded from GitHub.)
-
 \section{Discussion}
 % Is the model appropriate for the problem ?
 
-\begin{table}
-	\begin{center}
-		\begin{tabular}{|l|l|l|}
-			\hline
-			Classifier & Features & Acc. (\%) \\
-			\hline
-			linear SVM & raw audio & 0 \\
-			linear SVM & CQT spectrogram & 0 \\
-			linear SVM & normalized CQT spectrogram & 0 \\
-			linear SVM & features from \eqnref{basispursuit} & 0 \\
-			linear SVM & features from \eqnref{minz} & 0 \\
-			linear SVM & features from \eqnref{extraction} & 0 \\
-			\hline
-		\end{tabular}
-	\end{center}
-	\caption{Genre recognition accuracy of various algorithms on GTZAN.}
-	\label{tab:accuracy_comparison}
-\end{table}
-
-While our results did not attain the state-of-the-art (yet) in \gls{MGR} on GTZAN, depicted in \tabref{accuracy_comparison};
-we demonstrated the usefulness of an important property of the proposed model: the conservation of the structure in the data, which allows the system to be robust to noisy data as well as being able to generalize with a very scarce training set.
+While our results are far from the state-of-the-art in \gls{MGR} on GTZAN, we demonstrated the usefulness of an important property of the proposed model: the conservation of the structure in the data, which allows the system to be robust to noisy data.
+We showed experimentally that two assumptions of the our model (\secref{assumptions}) are indeed true: the learned representations are sparse (\figref{sparse_representations}) and structured.
 %we made the point that our model is useful and that we shall continue to research on it.
-Higher classification accuracies are probably achievable by fine-tuning the hyper-parameters and introducing further tricks: e.g. by applying a \gls{LCN} to the \gls{CQT} spectrograms or working on individual octaves, two techniques used by \cite{lecun2011PSDaudio}. We may even further improve the performance of our model by creating a better graph, i.e. a graph more adapted to the problem at hand, by fine-tuning the hyper-parameters.
+Higher classification accuracies are probably achievable by fine-tuning the hyper-parameters and introducing further tricks: e.g. by applying a \gls{LCN} to the \gls{CQT} spectrograms or working on individual octaves, two techniques used by \cite{lecun2011PSDaudio}. We may even further improve the performance of our model by creating a better graph, i.e. a graph more adapted to the problem at hand, by tuning the construction hyper-parameters.
