@@ -90,6 +90,8 @@ Note also that while the system was designed for transductive learning, it can a
 % Goal: change of time scale.
 Aggregate features are computed for each song by summing up the frame-level features over 5-second time windows overlapping by half, which has been found to substantially improve classification performance \cite{bergstra2006aggregateFeatures, hamel2010aggregateFeatures}. Since each sparse code records which dictionary elements are present in a given \gls{CQT} frame, these aggregate features vectors can be thought of as histograms recording the number of occurrences of each dictionary element in the time window.
 
+When constructing the graph, the implementation uses the FLANN library \cite{muja2009flann} for a fast approximate k-nearest neighbors search.
+
 \paragraph{\gls{SVM}.}
 Aggregate features are then classified by a \gls{SVM} \cite{cortes1995SVM}, which is a non-probabilistic binary linear classifier. It was chosen because it is fast to train and scale well to large datasets (thanks to the few support vectors), which is an important consideration in \gls{MIR}.
 
@@ -105,32 +107,32 @@ The genre prediction for a clip is given by a majority vote between the 12 aggre
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\chapter{Implementation} \label{chap:implementation}
+%\chapter{Implementation} \label{chap:implementation}
 
-\section{Framework}
+%\section{Framework}
 % Stack: numpy, scipy, matplotlib, scikit-learn, librosa
 % Tools: IPython notebook, CDK cluster, matplotlib, h5py, librosa
 % Explain why and how data is stored (layout) via HDF5.
 
-\subsection{PyUNLocBoX}
+%\subsection{PyUNLocBoX}
 % PyUNLocBoX: explains how it works
 
-\section{Design}
+%\section{Design}
 
-\section{Performance} \label{sec:performance}
+%\section{Performance} \label{sec:performance}
 
-\subsection{Algorithm}
+%\subsection{Algorithm}
 % FISTA vs PD implementation
 
-\subsection{Approximate KNN search}
+%\subsection{Approximate KNN search}
 % How FLANN works, what are the alternatives.
 % Techniques: KDtree, ball, local hashes (LHS)
 % cosine to euclidean
 
-\subsection{Optimization for space}
+%\subsection{Optimization for space}
 % Optimization for space: avoid copy, modify in place, float32, store Z as scipy.sparse
 
-\subsection{Optimization for speed}
+%\subsection{Optimization for speed}
 % Optimization for speed: ATLAS/OpenBLAS, float32 (memory bandwidth), projection in the ball (not on the sphere)
 % ATLAS mono-threaded (at least on Ubuntu), OpenBLAS multi-threaded.
 % Linear algebra: optimized version of BLAS: ATLAS and OpenBLAS. (LINPACK)
