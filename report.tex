@@ -5,7 +5,7 @@
 \usepackage{float} \usepackage{graphicx,subcaption}
 \usepackage{amssymb,amsmath} \usepackage{siunitx}
 \usepackage[style=numeric,backend=biber]{biblatex} \bibliography{refs}
-\usepackage[top=4cm,bottom=4cm,right=4cm,left=4cm,headheight=15pt]{geometry}
+\usepackage[top=4cm,bottom=4cm,right=3.5cm,left=3.5cm,headheight=15pt]{geometry}
 %\usepackage[top=4cm,bottom=4cm,outer=3cm,inner=4cm]{geometry}
 \usepackage{fancyhdr} \pagestyle{fancy} %\usepackage{lastpage}
 %\usepackage{parskip} \setlength{\parindent}{0em} \setlength{\parskip}{1em}
@@ -192,7 +192,7 @@
 
 \pagestyle{empty}
 \begin{abstract}
-	In this work, we introduce a novel auto-encoder architecture which leverages on the recent advances of deep learning using an efficient auto-encoder strategy that simultaneously learns sparse representation of inputs and dictionary adapted to those inputs. Our main goal is to find a solution to sparse coding that is structured by the proximities of the sparse features encoded by a graph of audio inputs. We borrow ideas from manifold learning to constrain our solution to be smooth on this graph, i.e. to have a small Dirichlet energy, in order to implicitly force feature proximities. Our auto-encoder model is formulated as a non-convex optimization problem, for which a well-posed iterative scheme is provided.
+	In this work, we present a technique that learns discriminative audio features for Music Information Retrieval (MIR). The novelty of the proposed technique is to design auto-encoders that make use of data structures to learn enhanced sparse data representations. The data structure is borrowed from the Manifold Learning field, that is data are supposed to be sampled from smooth manifolds, which are here represented by graphs of proximities of the input data. As a consequence, the proposed auto-encoders finds sparse data representations that are quite robust w.r.t. perturbations. The model is formulated as a non-convex optimization problem. However, it can be decomposed into iterative sub-optimization problems that are convex and for which well-posed iterative schemes are provided in the context of the Fast Iterative Shrinkage-Thresholding (FISTA) framework. Our numerical experiments show two main results. Firstly, our graph-based auto-encoders improve the classification accuracy by 2\% over the auto-encoders without graph structure for the popular GTZAN music dataset. Secondly, our model is significantly more robust as it is 8\% more accurate than the standard model in the presence of 10\% of perturbations.
 \end{abstract}
 
 \renewcommand{\abstractname}{Acknowledgements}
@@ -218,38 +218,30 @@
 \chapter*{Introduction}
 \addcontentsline{toc}{chapter}{Introduction}
 
-{\color{red} Introduction to the matter.}
+%{\color{red} Introduction to the matter.}
 %\chapter{Machine learning}
 % What's the purpose of learning.
 % Why learned features instead of hand-crafted features ?
 %\section{Supervised vs unsupervised}
 % Explain the difference. Why do we want unsupervised ?
 
-
 % What will be presented. Design goal.
-This thesis introduces the \textit{structured auto-encoder}, an auto-encoder variant which preserves the structure of the data while transforming it in a sparse representation. It learns sparse representations that explicitly take into account the local manifold structure of the data.
-The primary goal of the proposed algorithm is unsupervised representation learning toward the goal of feature extraction, while being robust to noisy data and fast at feature extraction (after the training phase). As the discriminative power of learned representations cannot be directly evaluated, the proposed algorithm shall be evaluated through a classification task.
-We propose an application in \gls{MIR} which consists of retrieving the genre of unknown musical clips. The proposed algorithm 
+This thesis introduces a \textit{structured auto-encoder}, an auto-encoder variant which preserves the structure of the data while transforming it in a sparse representation. It learns sparse representations that explicitly take into account the local manifold structure of the data. The primary goal of the proposed algorithm is unsupervised representation learning toward the goal of feature extraction, while being robust to noisy data and fast at feature extraction (after the training phase). As the discriminative power of learned representations cannot be directly evaluated, the proposed algorithm shall be evaluated through a classification task. We propose an application in \gls{MIR} which consists of retrieving the genre of unknown musical clips.
 
 %As we shall see, it has the properties of an hybrid between a sparse auto-encoder \cite{lecun2006sparseAutoencoders, ranzato2007stackedSparseAutoencoders} and a denoising auto-encoder \cite{bengio2008denoisingAutoencoders}.
 
 % Plan.
-This thesis is divided in two parts. Through \partref{algorithm},
+This thesis report is divided in two parts. Through \partref{algorithm},
 %the proposed model is introduced by a motivation in \chapref{motivation}
-some background informations are given in \chapref{background} and the proposed model is
-constructed step by step in \chapref{model}, which is the core of this work. A well-posed iterative scheme to solve the resulting non-convex optimization problem is then proposed in \chapref{optimization}. That is the way the model is learned. % while \chapref{related_work} compares it to existing models.
-\secref{approximate_schemes} shows how features may be extracted with the learned data model.
-As a testbed of our algorithm's performance, an application to \gls{MGR} is proposed in \partref{application} with a presentation of the problem in \chapref{problem}, our proposed system in \chapref{system}
+some background informations are given in \chapref{background} and the proposed model is constructed step by step in \chapref{model}, which is the core of this work. Well-posed iterative schemes to solve the resulting convex sub-optimization problems are then proposed in \chapref{optimization}.% while \chapref{related_work} compares it to existing models.
+As a testbed of our algorithm's performance, an application to \gls{MGR} is proposed in \partref{application} with a presentation of the application in \chapref{MGR} and the proposed system in \chapref{system}.
 % along with some implementation details in \chapref{implementation}.
 \chapref{results} is dedicated to the presentation of the experimental results.
 
-
-
 This work was accomplished as a Master thesis, which is an integral part of the major in Information Technologies curriculum from the Electrical and Electronic Section of the \gls{EPFL}. It was conducted at the LTS2 laboratory\footnote{The laboratory homepage is accessible at \url{http://lts2www.epfl.ch/}.}.
 
-While the project was ongoing, I continuously published my thoughts, observations, findings, experiments, results and plans as well as a summary of the weekly meetings with my supervisors on an online blog\footnote{My research blog is available at \url{https://lts2research.epfl.ch/blog/mdeff/}.} in the format of an open laboratory notebook. In the spirit of open research, the code as well as all the results, this report and the ongoing paper are versioned with git and available online through GitHub\footnote{My GitHub account can be found at \url{https://github.com/mdeff}.}. Some continuation of this work shall be submitted to the 41st IEEE \gls{ICASSP}. We may also aim at a journal paper at the end of the project.
+While the project was ongoing, I continuously published my thoughts, observations, findings, experiments, results and plans as well as a summary of the weekly meetings with my supervisors on an online blog\footnote{My research blog is available at \url{https://lts2research.epfl.ch/blog/mdeff/}.} in the format of an open laboratory notebook. In the spirit of open research, the code as well as all the results, this report and the ongoing paper are versioned with git and available online through GitHub\footnote{My GitHub account can be found at \url{https://github.com/mdeff}.}. Some continuation of this work shall be submitted to the 41st IEEE \gls{ICASSP}.
 
-This manuscript is available on GitHub, git revision ***
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -266,20 +258,16 @@ This manuscript is available on GitHub, git revision ***
 \addcontentsline{toc}{chapter}{Conclusion}
 % Discussion of our results. Strengths and weaknesses of our method.
 
-In this work we introduced a novel auto-encoder architecture, which characteristic is to learn sparse and structured representation of input data, borrowing ideas from sparse coding and manifold learning. It learns sparse representations that explicitly take into account the local manifold structure of the data.
+In this work we introduced a novel auto-encoder architecture, which main characteristic is to learn sparse and structured representation of input data, borrowing ideas from sparse coding and manifold learning. Precisely, it learns sparse representations that explicitly take into account the local manifold structure of the data. The experimental results on music genre recognition showed that our model extracted more discriminant features than sparse auto-encoders.
 
-The model is formulated as a non-convex optimization problem, for which a well-posed iterative scheme was provided.
-
-The experimental results on music genre recognition showed that our model extracted more discriminant features than sparse auto-encoders.
-
-\section*{Future work}
-\addcontentsline{toc}{section}{Future work}
+%\section*{Future work}
+%\addcontentsline{toc}{section}{Future work}
 % Split future work on the algorithm and on the application ?
 % Only about algorithm ?
 
-\paragraph{Direct encoder.}
+%\paragraph{Direct encoder.}
 % Verify the hypothesis
-Our model's third assumption about the existence of a direct encoder (\secref{assumptions}) has to be verified experimentally. It remains to be shown that the features extracted with the approximate scheme \eqnref{z_direct} are equivalent to those extracted with the exact scheme \eqnref{z_exact}. Previous work in the direction however suggests that this assumption is reasonable and that such an encoder should exist.
+%Our model's third assumption about the existence of a direct encoder (\secref{assumptions}) has to be verified experimentally. It remains to be shown that the features extracted with the approximate scheme \eqnref{z_direct} are equivalent to those extracted with the exact scheme \eqnref{z_exact}. Previous work in the direction however suggests that this assumption is reasonable and that such an encoder should exist.
 
 %\paragraph{TV norm.}
 % TV norm on the graph instead of Dirichlet energy

@@ -7,7 +7,7 @@
 % The Need for Non-Local Generalization and Distributed Representations
 % Feature learning, representation learning.
 
-\section{Representation learning}
+%\section{Representation learning}
 %\section{Feature / representation learning}
 % NN is well suited for representation learning
 % We want unsupervised feature learning vs supervised vs hand-crafted
@@ -24,7 +24,7 @@
 % What is it ? In general.
 Such a network is composed by an input layer, a number of hidden layers and an output layer. The activation of the neurons in the input layer corresponds to the input vector, e.g. an image for computer vision, a song for \gls{MIR}, a word vector for machine translation and sentiment analysis. A weight matrix, followed by a non-linear activation function, then transforms the vector in another representation. The output vector of the first layer is the input vector of the second, and so on until the output layer is reached. The activation of the neurons in the output layer may represent classes, probability distributions, or the estimated value of an unknown function to be learned.
 
-{\color{red} Picture ?}
+%{\color{red} Picture ?}
 
 % Types: feed-forward or recurrent
 In a feed-forward network, the connections go from one layer to the next, i.e. information only goes in one direction, forward, from the input nodes, through the hidden nodes (if any) and to the output nodes. Such networks are known to be able to approximate any function. The perceptron, the \gls{MLP} and the \gls{CNN} are examples of this class of networks.
@@ -44,7 +44,7 @@ However, in an unsupervised learning setting, there is no desired output, which 
 An auto-encoder, auto-associator or Diabolo network is an artificial neural network composed of $n$ input and output units and $m$ hidden units. It is used for learning efficient codings \cite{bourlard1988autoencoder, hinton1994autoencoder}. The aim of an auto-encoder is to learn a distributed representation (encoding) for a set of data. An auto-encoder is trained to encode the input $\x \in \R^n$ into some representation $\z \in \R^m$ so that the input can be reconstructed from that representation. It is thus a generative model. Hence the target output of the auto-encoder is the auto-encoder input itself. Auto-encoders may further be stacked to form a \gls{DBN}, while each layer can be trained separately \cite{bengio2007DBN, ranzato2007stackedSparseAutoencoders}.
 % Stacked Auto-Encoders, not DBN
 
-{\color{red} Picture ?}
+%{\color{red} Picture ?}
 
 % if linear activations are used, or only a single sigmoid hidden layer, then the optimal solution to an auto-encoder is strongly related to principal component analysis (PCA).[5]
 If there is one linear hidden layer and the mean squared error criterion is used to train the network, then the $k$ hidden units learn to project the input in the span of the first $k$ principal components of the data \cite{bourlard1988autoencoder}. If the hidden layer is non-linear, the auto-encoder behaves differently from \gls{PCA}, with the ability to capture multi-modal aspects of the input distribution \cite{japkowicz2000autoencoderPCA}.
@@ -54,10 +54,10 @@ The hope is that the code $\z$ is a distributed representation that captures the
 It can typically be used for dimensionality reduction by learning a compressed ($m<n$) representation of the data. Another application is feature extraction before classification, for which we want an higher dimensionality ($m>n$) for easier separability. One serious issue with this approach is that if there is no other constraint, then an auto-encoder with $n$-dimensional input and an encoding of dimension $m \geq n$ could potentially just learn the identity function. There are different ways that an auto-encoder with more hidden units than inputs could be prevented from learning the identity, and still capture something useful about the input in its hidden representation $\z$.
 
 \paragraph{Sparse auto-encoders.}
-Another strategy, based on the concept of sparse coding, is to add a sparsity constraint on the code. While an ordinary auto-encoder or an \gls{RBM} has an encoder part which computes $P(\z|\x)$ and a decoder part which computes $P(\x|\z)$, sparse coding systems only parametrize the decoder: the encoder is implicitly defined as the solution of an optimization. A middle ground between ordinary auto-encoders and sparse coding was proposed in \cite{lecun2006sparseAutoencoders, ranzato2007stackedSparseAutoencoders} and applied to pattern recognition and machine vision tasks. They propose to let the codes $\z$ be free (as in sparse coding algorithms), but include a parametric encoder (as in an ordinary auto-encoder or \gls{RBM}) and a penalty for the difference between the free non-parametric codes $\z$ and the outputs of the parametric encoder. In this way, the optimized codes $\z$ try to satisfy two objectives: reconstruct well the input (like in sparse coding), while not being too far from the output of the encoder (which is stable by construction, because of the simple parametrization of the encoder). See \secref{encoder} for the definition of our encoder.
+One strategy, based on the concept of sparse coding, is to add a sparsity constraint on the code. While an ordinary auto-encoder or an \gls{RBM} has an encoder part which computes $P(\z|\x)$ and a decoder part which computes $P(\x|\z)$, sparse coding systems only parametrize the decoder: the encoder is implicitly defined as the solution of an optimization. A middle ground between ordinary auto-encoders and sparse coding was proposed in \cite{lecun2006sparseAutoencoders, ranzato2007stackedSparseAutoencoders} and applied to pattern recognition and machine vision tasks. They propose to let the codes $\z$ be free (as in sparse coding algorithms), but include a parametric encoder (as in an ordinary auto-encoder or \gls{RBM}) and a penalty for the difference between the free non-parametric codes $\z$ and the outputs of the parametric encoder. In this way, the optimized codes $\z$ try to satisfy two objectives: reconstruct well the input (like in sparse coding), while not being too far from the output of the encoder (which is stable by construction, because of the simple parametrization of the encoder). See \secref{encoder} for the definition of our encoder.
 
 \paragraph{Denoising auto-encoders.}
-One strategy is to add noise in the encoding. The denoising auto-encoder thus minimizes the error in reconstructing the input from a stochastically corrupted transformation of the input \cite{bengio2008denoisingAutoencoders}. Intuitively, a denoising auto-encoder does two things: try to encode the input (preserve the information about the input), and try to undo the effect of a corruption process stochastically applied to the input of the auto-encoder. This is essentially what a \gls{RBM} does \cite{hinton2002RBM}.
+Another strategy is to add noise in the encoding. The denoising auto-encoder thus minimizes the error in reconstructing the input from a stochastically corrupted transformation of the input \cite{bengio2008denoisingAutoencoders}. Intuitively, a denoising auto-encoder does two things: try to encode the input (preserve the information about the input), and try to undo the effect of a corruption process stochastically applied to the input of the auto-encoder. This is essentially what a \gls{RBM} does \cite{hinton2002RBM}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -180,7 +180,9 @@ Finding the sparse code $\z^*$ however requires a combinatorial search which is 
 \begin{equation} \label{eqn:basispursuit}
 	\z^* = \argmin{\z} \frac{\lambda_d}{2} \normT{\x - \D \z} + \lambda_z \normO{\z},
 \end{equation}
-which is the \gls{LASSO} regularized least square problem introduced in \eqnref{lasso_regularization}. As is now well understood \cite{candes2005CS, donoho2006CS}, the $\ell_1$ norm is a very good proxy for the $\ell_0$ pseudo-norm and naturally induces sparse results. It can even be shown to recover exactly the true sparse code, i.e. the solution of \eqnref{sparsecoding} (if there is one), under mild conditions \cite{donoho2003OptSparse}. {\color{red}link with \gls{RIP}}. A number of algorithms have been proposed to efficiently solve this problem \cite{chen1998BasisPursuit, beck2009FISTA, ng2006EfficientSparse, li2009Coordinate}. They however still rely on computationally expensive iterative procedures which limit the system's scalability and real-time applications. While a direct method will always be preferred for feature extraction, iterative methods will still be necessary during training. Distributed computing with \gls{GPU} or via cloud computing will hopefully accelerate the process.
+which is the \gls{LASSO} regularized least square problem introduced in \eqnref{lasso_regularization}. As is now well understood \cite{candes2005CS, donoho2006CS}, the $\ell_1$ norm is a very good proxy for the $\ell_0$ pseudo-norm and naturally induces sparse results. It can even be shown to recover exactly the true sparse code, i.e. the solution of \eqnref{sparsecoding} (if there is one), under mild conditions \cite{donoho2003OptSparse}.
+%{\color{red}link with \gls{RIP}}.
+A number of algorithms have been proposed to efficiently solve this problem \cite{chen1998BasisPursuit, beck2009FISTA, ng2006EfficientSparse, li2009Coordinate}. They however still rely on computationally expensive iterative procedures which limit the system's scalability and real-time applications. While a direct method will always be preferred for feature extraction, iterative methods will still be necessary during training. Distributed computing with \gls{GPU} or via cloud computing will hopefully accelerate the process.
 
 \section{Dictionary learning} \label{sec:dictionary_learning}
 
