@@ -33,3 +33,11 @@ Related resources:
 * Code: <https://github.com/mdeff/dlaudio>
 * Experimental results: <http://nbviewer.jupyter.org/github/mdeff/dlaudio_results>
 * Latex sources of the report: <https://github.com/mdeff/dlaudio_report>
+
+## Compilation
+
+```
+make
+```
+
+PDF available at <https://infoscience.epfl.ch/record/218019/files/report.pdf>.
